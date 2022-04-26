@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from sys import platform as platform
+from typing import List
 
 import PySimpleGUI as sg
 import requests
@@ -46,37 +47,38 @@ class IpModel(BaseModel):
 
 @dataclass
 class Data:
-    categories: list
+    categories: List[str]
     data: str
-    selected_list: list
-    channels: list
-    media_instance: str
-    player_event = None
-    filename: str = None
+    selected_list: List[str]
+    channels: List[str]
+    media_instance: player
+    filename: Path
     ip_info = requests.get("http://ipinfo.io/json").json()
 
 
-def generate_list(values, categories, do_file: bool = False):
+def generate_list(
+    values: dict, categories: list, new_file: Path = "", do_file: bool = False
+) -> List[str]:
     result = []
     lines = Data.data.split("\n")
-    if os.path.isfile("new_file.m3u") and do_file:
-        os.remove("new_file.m3u")
+    if os.path.isfile(new_file) and do_file:
+        os.remove(new_file)
     for i, each_line in enumerate(lines):
         for item in values["_table_countries_"]:
             if categories[item] in each_line:
                 if do_file:
-                    with open("new_file.m3u", "a+", encoding="UTF-8") as file:
+                    with open(new_file, "a+", encoding="UTF-8") as file:
                         file.write(f"{lines[i]}\n{lines[i + 1]}\n")
                 else:
                     result.append(f"{lines[i]}\n{lines[i + 1]}")
     return result
 
 
-def get_selected():
+def get_selected() -> List[List[str]]:
     return [re.findall('tvg-name="(.*?)"', i) for i in Data.selected_list]
 
 
-def get_categories(filter_search: str = None) -> list:
+def get_categories(filter_search: str = None) -> List[str]:
     if os.path.isfile(Data.filename):
         categories = []
         with open(Data.filename, "r", encoding="utf8") as file:
@@ -97,7 +99,7 @@ async def main():
     sg.theme("DarkTeal6")
     sg.set_options(element_padding=(0, 0))
 
-    def play(media_play_link: str, full_screen: bool = False):
+    def play(media_play_link: str, full_screen: bool = False) -> None:
 
         if Player.players is not None:
             Player.players.stop()
@@ -116,7 +118,7 @@ async def main():
         Player.players.play()
 
     menu_def = [
-        ["&File", ["&Open", "&Generate", "&Exit"]],
+        ["&File", ["&Open", "&Custom List", "&Exit"]],
         ["&Settings", ["&IP Info"]],
         ["&Help", "&About"],
     ]
@@ -248,9 +250,41 @@ async def main():
             Data.categories = get_categories()
             window["_table_countries_"].Update(Data.categories)
 
-        elif event == "Generate" and Data.filename:
-            generate_list(values, Data.categories, True)
-            sg.popup("Your new list has been created", no_titlebar=True)
+        elif event == "Custom List" and Data.filename and values["_table_countries_"]:
+            generate_window = sg.Window(
+                "IP Address Info",
+                layout=[
+                    [
+                        sg.SaveAs(
+                            "Choose File Name",
+                            target="_file_",
+                            key="_file_to_be_generated_",
+                        ),
+                        sg.I(key="_file_"),
+                        sg.B("Create", key="_create_list_"),
+                    ]
+                ],
+                icon=icon,
+            ).finalize()
+            while True:
+                generate_event, generate_values = generate_window.read()
+                if generate_event in (sg.WIN_CLOSED, "Exit"):
+                    break
+                if (
+                    Path(generate_values["_file_to_be_generated_"])
+                    and generate_event == "_create_list_"
+                ):
+                    generate_list(
+                        values=values,
+                        categories=Data.categories,
+                        new_file=generate_values["_file_to_be_generated_"],
+                        do_file=True,
+                    )
+                    sg.popup_ok(
+                        f'Custom list {generate_values["_file_to_be_generated_"]} has been created',
+                        no_titlebar=True,
+                    )
+
         elif event == "IP Info":
             ipinfo_layout = [
                 [
@@ -281,20 +315,20 @@ async def main():
                     break
                 try:
                     Data.ip_info = requests.get("http://ipinfo.io/json").json()
-                except:
+                except ConnectionError:
                     continue
                 ipinfo_window["_ip_address_info_"].Update(
                     IpModel(**Data.ip_info).get_results
                 )
 
-        elif event == "_table_countries_" and len(Data.categories) > 0:
+        elif event == "_table_countries_" and Data.categories:
 
             Data.selected_list = generate_list(values, Data.categories)
             window["_iptv_content_"].update(get_selected())
 
         elif (
-                event in ["_iptv_content_", "Record", "Full Screen"]
-                and len(values["_iptv_content_"]) == 1
+            event in ["_iptv_content_", "Record", "Full Screen"]
+            and len(values["_iptv_content_"]) == 1
         ):
 
             media_link = [i.split("\n")[1] for i in Data.selected_list][
