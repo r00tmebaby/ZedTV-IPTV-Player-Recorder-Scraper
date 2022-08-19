@@ -52,12 +52,12 @@ class Data:
     selected_list: List[str]
     channels: List[str]
     media_instance: player
-    filename: Path
+    filename: Path = os.path.join(os.getcwd(), "programs.py")
     ip_info = requests.get("http://ipinfo.io/json").json()
 
 
 def generate_list(
-    values: dict, categories: list, new_file: Path = "", do_file: bool = False
+        values: dict, categories: list, new_file: Path = "", do_file: bool = False
 ) -> List[str]:
     result = []
     lines = Data.data.split("\n")
@@ -98,6 +98,7 @@ def get_categories(filter_search: str = None) -> List[str]:
 async def main():
     sg.theme("DarkTeal6")
     sg.set_options(element_padding=(0, 0))
+    Data.categories = get_categories()
 
     def play(media_play_link: str, full_screen: bool = False) -> None:
 
@@ -161,7 +162,7 @@ async def main():
                                 ],
                                 [
                                     sg.Table(
-                                        values=[["", "", ""]],
+                                        values=[*[i for i in Data.categories]],
                                         headings=["Info-1", "Info-2", "Info-3"],
                                         key="_table_countries_",
                                         change_submits=True,
@@ -216,7 +217,7 @@ async def main():
     ]
 
     window = sg.Window(
-        "ZED-TV IPTV Scraper @r00tme v.1",
+        "ZED-TV IPTV Scraper @r00tme v.2",
         layout,
         icon=icon,
         resizable=True,
@@ -238,7 +239,7 @@ async def main():
         if event == "About":
             sg.popup(
                 "IPTV Player-Scraper & r00tmebaby",
-                "1.0 Released on 23.04.2022",
+                "1.2 Released on 19.08.2022",
                 no_titlebar=True,
                 grab_anywhere=True,
                 keep_on_top=True,
@@ -271,8 +272,8 @@ async def main():
                 if generate_event in (sg.WIN_CLOSED, "Exit"):
                     break
                 if (
-                    Path(generate_values["_file_to_be_generated_"])
-                    and generate_event == "_create_list_"
+                        Path(generate_values["_file_to_be_generated_"])
+                        and generate_event == "_create_list_"
                 ):
                     generate_list(
                         values=values,
@@ -327,15 +328,15 @@ async def main():
             window["_iptv_content_"].update(get_selected())
 
         elif (
-            event in ["_iptv_content_", "Record", "Full Screen"]
-            and len(values["_iptv_content_"]) == 1
+                event in ["_iptv_content_", "Record", "Full Screen"]
+                and len(values["_iptv_content_"]) == 1
         ):
 
             media_link = [i.split("\n")[1] for i in Data.selected_list][
                 values["_iptv_content_"][0]
             ]
 
-            if event == event == "_iptv_content_":
+            if event == "_iptv_content_":
                 Data.media_instance = Player.vlc_instance.media_new(media_link)
             else:
                 Data.media_instance = Player.vlc_instance.media_new(
