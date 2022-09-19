@@ -7,7 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from sys import platform as platform
 from typing import List
-
+import programs
 import PySimpleGUI as sg
 import requests
 from pydantic import BaseModel
@@ -56,7 +56,7 @@ class Data:
     ip_info = requests.get("http://ipinfo.io/json").json()
 
 
-def generate_list(
+async def generate_list(
         values: dict, categories: list, new_file: Path = "", do_file: bool = False
 ) -> List[str]:
     result = []
@@ -74,7 +74,7 @@ def generate_list(
     return result
 
 
-def get_selected() -> List[List[str]]:
+async def get_selected() -> List[List[str]]:
     return [re.findall('tvg-name="(.*?)"', i) for i in Data.selected_list]
 
 
@@ -100,7 +100,7 @@ async def main():
     sg.set_options(element_padding=(0, 0))
     Data.categories = get_categories()
 
-    def play(media_play_link: str, full_screen: bool = False) -> None:
+    async def play(media_play_link: str, full_screen: bool = False) -> None:
 
         if Player.players is not None:
             Player.players.stop()
@@ -217,7 +217,7 @@ async def main():
     ]
 
     window = sg.Window(
-        "ZED-TV IPTV Scraper @r00tme v.2",
+        "ZED-TV IPTV Scraper @r00tme v.3",
         layout,
         icon=icon,
         resizable=True,
@@ -232,14 +232,14 @@ async def main():
         players = vlc_instance.media_player_new()
 
     while True:
-        event, values = window.read(timeout=0)
+        event, values = window.read()
 
         if event in (sg.WIN_CLOSED, "Exit"):
             break
         if event == "About":
             sg.popup(
                 "IPTV Player-Scraper & r00tmebaby",
-                "1.2 Released on 19.08.2022",
+                "1.3 Released on 20.09.2022",
                 no_titlebar=True,
                 grab_anywhere=True,
                 keep_on_top=True,
@@ -257,11 +257,11 @@ async def main():
                 layout=[
                     [
                         sg.SaveAs(
-                            "Choose File Name",
+                            "Save as",
                             target="_file_",
                             key="_file_to_be_generated_",
                         ),
-                        sg.I(key="_file_"),
+                        sg.I(key="_file_", disabled=True),
                         sg.B("Create", key="_create_list_"),
                     ]
                 ],
@@ -275,12 +275,12 @@ async def main():
                         Path(generate_values["_file_to_be_generated_"])
                         and generate_event == "_create_list_"
                 ):
-                    generate_list(
+                    asyncio.ensure_future(generate_list(
                         values=values,
                         categories=Data.categories,
                         new_file=generate_values["_file_to_be_generated_"],
                         do_file=True,
-                    )
+                    ), loop=asyncio.get_event_loop())
                     sg.popup_ok(
                         f'Custom list {generate_values["_file_to_be_generated_"]} has been created',
                         no_titlebar=True,
@@ -311,7 +311,7 @@ async def main():
             )
 
             while True:
-                ipinfo_event, ipinfo_values = ipinfo_window.read(timeout=0)
+                ipinfo_event, ipinfo_values = ipinfo_window.read()
                 if ipinfo_event in (sg.WIN_CLOSED, "Exit"):
                     break
                 try:
@@ -324,8 +324,8 @@ async def main():
 
         elif event == "_table_countries_" and Data.categories:
 
-            Data.selected_list = generate_list(values, Data.categories)
-            window["_iptv_content_"].update(get_selected())
+            Data.selected_list = await generate_list(values, Data.categories)
+            window["_iptv_content_"].update(await get_selected())
 
         elif (
                 event in ["_iptv_content_", "Record", "Full Screen"]
@@ -356,9 +356,9 @@ async def main():
                 )
 
             if event == "Full Screen":
-                play(Data.media_instance, True)
+                await asyncio.ensure_future(play(Data.media_instance, True))
             else:
-                play(Data.media_instance)
+                await asyncio.ensure_future(play(Data.media_instance))
 
         elif event == "_cat_search_btn" and Data.filename:
             if values["_cat_search_"]:
@@ -371,15 +371,15 @@ async def main():
         elif event == "_ch_search_btn" and Data.filename:
             if values["_ch_search_"]:
                 temp_list = []
-                Data.selected_list = generate_list(values, Data.categories)
-                for i, channel in enumerate(get_selected()):
+                Data.selected_list = await generate_list(values, Data.categories)
+                for i, channel in enumerate(await get_selected()):
                     if values["_ch_search_"].lower() in channel[0].lower():
                         temp_list.append(Data.selected_list[i])
                 Data.selected_list = temp_list
-                window["_iptv_content_"].update(get_selected())
+                window["_iptv_content_"].update(await get_selected())
             else:
-                Data.selected_list = generate_list(values, Data.categories)
-                window["_iptv_content_"].update(get_selected())
+                Data.selected_list = await generate_list(values, Data.categories)
+                window["_iptv_content_"].update(await get_selected())
         if event is not sg.TIMEOUT_KEY:
             if len(event) == 1:
                 if ord(event) == 27:
