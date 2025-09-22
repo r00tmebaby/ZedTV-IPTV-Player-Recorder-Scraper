@@ -121,7 +121,7 @@ def _choose_account_window() -> Optional[AccountChoice]:
 
         if e == "Use" and name:
             w.close()
-            return ("use", name, accs[name])
+            return "use", name, accs[name]
 
         if e == "Delete" and name:
             del accs[name]
@@ -208,7 +208,7 @@ def _add_account_window():
         [sg.Text("Name", size=(20, 1)), sg.Input(key="_name_", size=(30, 1))],
         [
             sg.Text("Host (e.g. likan.me)", size=(20, 1)),
-            sg.Input(key="_host_", default_text="likan.me", size=(30, 1)),
+            sg.Input(key="_host_", size=(30, 1)),
         ],
         [
             sg.Text("Port", size=(20, 1)),
@@ -217,14 +217,13 @@ def _add_account_window():
         ],
         [
             sg.Text("Username", size=(20, 1)),
-            sg.Input(key="_user_", default_text="36WGTJE", size=(30, 1)),
+            sg.Input(key="_user_", size=(30, 1)),
         ],
         [
             sg.Text("Password", size=(20, 1)),
             sg.Input(
                 key="_pass_",
                 password_char="*",
-                default_text="U5LXEBV",
                 size=(30, 1),
             ),
         ],
