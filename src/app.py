@@ -172,17 +172,13 @@ def _fmt_formats(ui: dict, limit: int = 4) -> str:
     fmt = ui.get("allowed_output_formats") or []
     if not fmt:
         return "-"
-    return ",".join(fmt[:limit]) + (
-        f" +{len(fmt)-limit}" if len(fmt) > limit else ""
-    )
+    return ",".join(fmt[:limit]) + (f" +{len(fmt)-limit}" if len(fmt) > limit else "")
 
 
 def _safe_filename(name: str, max_len: int = 180) -> str:
     """Return a Windows-safe filename (no reserved chars, trimmed)."""
     s = re.sub(r"\s+", " ", name or "").strip()
-    s = "".join(
-        (c if c not in INVALID_WIN and ord(c) >= 32 else "_") for c in s
-    )
+    s = "".join((c if c not in INVALID_WIN and ord(c) >= 32 else "_") for c in s)
     s = s.rstrip(" .")[:max_len]
     return s or "recording"
 
@@ -214,16 +210,12 @@ def _xtream_api(base: str, username: str, password: str, **params) -> dict:
     q = {"username": username, "password": password}
 
     q.update(params)
-    r = httpx.get(
-        f"{base}/player_api.php", params=q, headers=HEADERS, verify=False
-    )
+    r = httpx.get(f"{base}/player_api.php", params=q, headers=HEADERS, verify=False)
     r.raise_for_status()
     return r.json()
 
 
-def _build_m3u_from_xtream(
-    base: str, username: str, password: str
-) -> tuple[str, dict]:
+def _build_m3u_from_xtream(base: str, username: str, password: str) -> tuple[str, dict]:
     """
     Fetch live + VOD from Xtream.
     Returns:
@@ -231,27 +223,18 @@ def _build_m3u_from_xtream(
     """
 
     cats_live = (
-        _xtream_api(base, username, password, action="get_live_categories")
-        or []
+        _xtream_api(base, username, password, action="get_live_categories") or []
     )
     streams_live = (
         _xtream_api(base, username, password, action="get_live_streams") or []
     )
-    cats_vod = (
-        _xtream_api(base, username, password, action="get_vod_categories")
-        or []
-    )
-    streams_vod = (
-        _xtream_api(base, username, password, action="get_vod_streams") or []
-    )
+    cats_vod = _xtream_api(base, username, password, action="get_vod_categories") or []
+    streams_vod = _xtream_api(base, username, password, action="get_vod_streams") or []
 
     cat_live = {
-        str(c["category_id"]): c.get("category_name", "Live")
-        for c in cats_live
+        str(c["category_id"]): c.get("category_name", "Live") for c in cats_live
     }
-    cat_vod = {
-        str(c["category_id"]): c.get("category_name", "VOD") for c in cats_vod
-    }
+    cat_vod = {str(c["category_id"]): c.get("category_name", "VOD") for c in cats_vod}
 
     lines = ["#EXTM3U"]
     catalog = {"live": [], "vod": []}

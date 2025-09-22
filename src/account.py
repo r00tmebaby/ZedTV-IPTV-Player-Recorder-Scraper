@@ -95,7 +95,12 @@ def _choose_account_window() -> Optional[AccountChoice]:
         ],
     ]
     w = sg.Window(
-        "Xtream Accounts", layout, modal=True, keep_on_top=True, resizable=True, icon=ICON
+        "Xtream Accounts",
+        layout,
+        modal=True,
+        keep_on_top=True,
+        resizable=True,
+        icon=ICON,
     )
 
     while True:
@@ -254,9 +259,7 @@ def _add_account_window():
                         # 🚩 Save full API reply as a snapshot for instant table rendering later
                         "snapshot": {
                             **info,
-                            "_fetched_at": datetime.now(
-                                timezone.utc
-                            ).isoformat(),
+                            "_fetched_at": datetime.now(timezone.utc).isoformat(),
                         },
                     }
                     _accounts_save_one(name, acc)
@@ -273,8 +276,6 @@ def _add_account_window():
                     return {"name": name, **acc}
 
                 else:
-                    sg.popup_error(
-                        "Auth failed (not Active?).", keep_on_top=True
-                    )
+                    sg.popup_error("Auth failed (not Active?).", keep_on_top=True)
             except Exception as ex:
                 sg.popup_error(f"Error: {ex}", keep_on_top=True)

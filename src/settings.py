@@ -37,9 +37,7 @@ def _settings_set(**kwargs) -> None:
     _settings_save(d)
 
 
-def _load_xtream_into_app(
-    window: sg.Window, base: str, username: str, password: str
-):
+def _load_xtream_into_app(window: sg.Window, base: str, username: str, password: str):
     """Build M3U cache + rich catalog, point Data.filename, refresh category table."""
     text, catalog = _build_m3u_from_xtream(base, username, password)
 
@@ -78,9 +76,7 @@ def _auto_restore_last(window: "sg.Window") -> Optional[str]:
             return False
         try:
             Data.xtream_account = {"name": accname, **acc}
-            _load_xtream_into_app(
-                window, acc["base"], acc["username"], acc["password"]
-            )
+            _load_xtream_into_app(window, acc["base"], acc["username"], acc["password"])
             return True
         except Exception:
             return False
