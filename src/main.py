@@ -9,7 +9,7 @@ import requests
 from account import _add_account_window, _choose_account_window
 from config import ICON
 from layout import sg, layout
-from libs import player
+import player
 from models import Data, IpModel
 from settings import (
     _remember_last_m3u,
@@ -17,7 +17,7 @@ from settings import (
     _auto_restore_last,
     _load_xtream_into_app,
 )
-from utils import (
+from app import (
     get_categories,
     _rows,
     generate_list,
@@ -27,8 +27,6 @@ from utils import (
 )
 
 user32 = ctypes.windll.user32
-if not os.path.isdir("../records"):
-    os.mkdir("../records")
 
 
 async def main():

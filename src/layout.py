@@ -1,6 +1,6 @@
-from libs import PySimpleGUI as sg
+import PySimpleGUI as sg
 from models import Data
-from utils import _rows
+from app import _rows
 
 menu_def = [
     ["&File", ["&Open", "&Custom List", "&Exit"]],

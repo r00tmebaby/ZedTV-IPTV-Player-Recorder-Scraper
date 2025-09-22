@@ -3,14 +3,14 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from config import ACCOUNTS_FILE, AccountChoice, ICON
-from utils import (
+from app import (
     _epoch_to_str,
     _normalize_base,
     _xtream_api,
     _fmt_yesno,
     _fmt_formats,
 )
-from layout import sg
+import PySimpleGUI as sg
 
 
 def _format_account_info(info: dict) -> str:
