@@ -1,0 +1,5 @@
+requests
+pydantic
+black
+urlparse
+httpx[http2]

@@ -126,7 +126,7 @@ def find_lib():
             dll = ctypes.CDLL(os.environ["PYTHON_VLC_LIB_PATH"])
         except OSError:
             logger.error(
-                "Cannot load lib specified by PYTHON_VLC_LIB_PATH env. variable"
+                "Cannot load vlcLib specified by PYTHON_VLC_LIB_PATH env. variable"
             )
             sys.exit(1)
     if plugin_path and not os.path.isdir(plugin_path):
@@ -192,8 +192,8 @@ def find_lib():
     elif sys.platform.startswith("darwin"):
         # FIXME: should find a means to configure path
         d = "/Applications/VLC.app/Contents/MacOS/"
-        c = d + "lib/libvlccore.dylib"
-        p = d + "lib/libvlc.dylib"
+        c = d + "vlcLib/libvlccore.dylib"
+        p = d + "vlcLib/libvlc.dylib"
         if os.path.exists(p) and os.path.exists(c):
             # pre-load libvlccore VLC 2.2.8+
             ctypes.CDLL(c)
@@ -219,7 +219,7 @@ def find_lib():
             try:
                 dll = ctypes.CDLL("libvlc.so.5")
             except:
-                raise NotImplementedError("Cannot find libvlc lib")
+                raise NotImplementedError("Cannot find libvlc vlcLib")
 
     return (dll, plugin_path)
 
@@ -1173,6 +1173,7 @@ MediaPlayerRole._None = MediaPlayerRole(0)
 
 # End of generated enum types #
 
+
 # Generated structs #
 class LogMessage(ctypes.Structure):
     """N/A"""
@@ -1288,7 +1289,7 @@ AudioTrack._fields_ = (
 
 class VideoViewpoint(ctypes.Structure):
     """Viewpoint
-    \warning allocate using libvlc_video_new_viewpoint().
+    warning allocate using libvlc_video_new_viewpoint().
     """
 
     pass
@@ -1463,6 +1464,7 @@ RdDescription._fields_ = (
 
 
 # End of generated structs #
+
 
 # Generated callback definitions #
 class Callback(ctypes.c_void_p):
@@ -1693,6 +1695,7 @@ class AudioCleanupCb(ctypes.c_void_p):
 
 class CallbackDecorators(object):
     "Class holding various method decorators for callback functions."
+
     Callback = ctypes.CFUNCTYPE(None, ctypes.POINTER(Event), ctypes.c_void_p)
     Callback.__doc__ = """Callback function notification.
         @param p_event: the event triggering the callback.
@@ -1883,6 +1886,7 @@ cb = CallbackDecorators
 
 
 # End of generated enum types #
+
 
 # End of header.py #
 class AudioEqualizer(_Ctype):
@@ -2185,14 +2189,14 @@ class Instance(_Ctype):
 
     def audio_output_device_count(self, psz_audio_output):
         """Backward compatibility stub. Do not use in new code.
-        \deprecated Use L{audio_output_device_list_get}() instead.
+        deprecated Use L{audio_output_device_list_get}() instead.
         @return: always 0.
         """
         return libvlc_audio_output_device_count(self, str_to_bytes(psz_audio_output))
 
     def audio_output_device_longname(self, psz_output, i_device):
         """Backward compatibility stub. Do not use in new code.
-        \deprecated Use L{audio_output_device_list_get}() instead.
+        deprecated Use L{audio_output_device_list_get}() instead.
         @return: always None.
         """
         return libvlc_audio_output_device_longname(
@@ -2201,7 +2205,7 @@ class Instance(_Ctype):
 
     def audio_output_device_id(self, psz_audio_output, i_device):
         """Backward compatibility stub. Do not use in new code.
-        \deprecated Use L{audio_output_device_list_get}() instead.
+        deprecated Use L{audio_output_device_list_get}() instead.
         @return: always None.
         """
         return libvlc_audio_output_device_id(
@@ -2209,7 +2213,7 @@ class Instance(_Ctype):
         )
 
     def media_discoverer_new_from_name(self, psz_name):
-        """\deprecated Use L{media_discoverer_new}() and L{media_discoverer_start}()."""
+        """deprecated Use L{media_discoverer_new}() and L{media_discoverer_start}()."""
         return libvlc_media_discoverer_new_from_name(self, str_to_bytes(psz_name))
 
     def wait(self):
@@ -2817,7 +2821,7 @@ class Media(_Ctype):
         """Parse a media.
         This fetches (local) art, meta data and tracks information.
         The method is synchronous.
-        \deprecated This function could block indefinitely.
+        deprecated This function could block indefinitely.
                     Use L{parse_with_options}() instead
         See L{parse_with_options}
         See L{get_meta}
@@ -2832,7 +2836,7 @@ class Media(_Ctype):
         To track when this is over you can listen to libvlc_MediaParsedChanged
         event. However if the media was already parsed you will not receive this
         event.
-        \deprecated You can't be sure to receive the libvlc_MediaParsedChanged
+        deprecated You can't be sure to receive the libvlc_MediaParsedChanged
                     event (you can wait indefinitely for this event).
                     Use L{parse_with_options}() instead
         See L{parse}
@@ -2844,10 +2848,10 @@ class Media(_Ctype):
 
     def is_parsed(self):
         """Return true is the media descriptor object is parsed
-        \deprecated This can return true in case of failure.
+         This can return true in case of failure.
                     Use L{get_parsed_status}() instead
         See libvlc_MediaParsedChanged.
-        @return: true if media object has been parsed otherwise it returns false \libvlc_return_bool.
+        @return: true if media object has been parsed otherwise it returns false libvlc_return_bool.
         """
         return libvlc_media_is_parsed(self)
 
@@ -2856,7 +2860,7 @@ class Media(_Ctype):
         Note, you need to call L{parse}() or play the media at least once
         before calling this function.
         Not doing this will result in an empty array.
-        \deprecated Use L{tracks_get}() instead.
+        deprecated Use L{tracks_get}() instead.
         @param tracks: address to store an allocated array of Elementary Streams descriptions (must be freed by the caller) [OUT].
         @return: the number of Elementary Streams.
         """
@@ -2956,7 +2960,7 @@ class Media(_Ctype):
     def get_stats(self, p_stats):
         """Get the current statistics about the media.
         @param p_stats:: structure that contain the statistics about the media (this structure must be allocated by the caller).
-        @return: true if the statistics are available, false otherwise \libvlc_return_bool.
+        @return: true if the statistics are available, false otherwise libvlc_return_bool.
         """
         return libvlc_media_get_stats(self, p_stats)
 
@@ -3094,7 +3098,7 @@ class MediaDiscoverer(_Ctype):
 
     def localized_name(self):
         """Get media service discover object its localized name.
-        \deprecated Useless, use L{list_get}() to get the
+        deprecated Useless, use L{list_get}() to get the
         longname of the service discovery.
         @return: localized name or None if the media_discoverer is not started.
         """
@@ -3103,7 +3107,7 @@ class MediaDiscoverer(_Ctype):
     @memoize_parameterless
     def event_manager(self):
         """Get event manager from media service discover object.
-        \deprecated Useless, media_discoverer events are only triggered when calling
+        deprecated Useless, media_discoverer events are only triggered when calling
         L{start}() and L{stop}().
         @return: event manager object.
         """
@@ -3140,7 +3144,7 @@ class MediaDiscoverer(_Ctype):
 
     def is_running(self):
         """Query if media service discover object is running.
-        @return: true if running, false if not \libvlc_return_bool.
+        @return: true if running, false if not libvlc_return_bool.
         """
         return libvlc_media_discoverer_is_running(self)
 
@@ -3291,7 +3295,7 @@ class MediaList(_Ctype):
 
     def is_readonly(self):
         """This indicates if this media list is read-only from a user point of view.
-        @return: 1 on readonly, 0 on readwrite \libvlc_return_bool.
+        @return: 1 on readonly, 0 on readwrite libvlc_return_bool.
         """
         return libvlc_media_list_is_readonly(self)
 
@@ -3396,7 +3400,7 @@ class MediaListPlayer(_Ctype):
 
     def is_playing(self):
         """Is media list playing?
-        @return: true for playing and false for not playing \libvlc_return_bool.
+        @return: true for playing and false for not playing libvlc_return_bool.
         """
         return libvlc_media_list_player_is_playing(self)
 
@@ -3614,17 +3618,17 @@ class MediaPlayer(_Ctype):
         This function is provided for backward compatibility. It cannot deal with
         multiple video tracks. In LibVLC versions prior to 3.0, it would also fail
         if the file format did not convey the frame rate explicitly.
-        \deprecated Consider using L{media_tracks_get}() instead.
+        deprecated Consider using L{media_tracks_get}() instead.
         @return: frames per second (fps) for this playing movie, or 0 if unspecified.
         """
         return libvlc_media_player_get_fps(self)
 
     def set_agl(self, drawable):
-        """\deprecated Use L{set_nsobject}() instead."""
+        """deprecated Use L{set_nsobject}() instead."""
         return libvlc_media_player_set_agl(self, drawable)
 
     def get_agl(self):
-        """\deprecated Use L{get_nsobject}() instead."""
+        """deprecated Use L{get_nsobject}() instead."""
         return libvlc_media_player_get_agl(self)
 
     def video_get_title_description(self):
@@ -3642,7 +3646,7 @@ class MediaPlayer(_Ctype):
 
     def video_set_subtitle_file(self, psz_subtitle):
         """Set new video subtitle file.
-        \deprecated Use L{add_slave}() instead.
+        deprecated Use L{add_slave}() instead.
         @param psz_subtitle: new video subtitle file.
         @return: the success status (boolean).
         """
@@ -3650,7 +3654,7 @@ class MediaPlayer(_Ctype):
 
     def toggle_teletext(self):
         """Toggle teletext transparent status on video output.
-        \deprecated use L{video_set_teletext}() instead.
+        deprecated use L{video_set_teletext}() instead.
         """
         return libvlc_toggle_teletext(self)
 
@@ -3691,7 +3695,7 @@ class MediaPlayer(_Ctype):
 
     def is_playing(self):
         """is_playing.
-        @return: 1 if the media player is playing, 0 otherwise \libvlc_return_bool.
+        @return: 1 if the media player is playing, 0 otherwise libvlc_return_bool.
         """
         return libvlc_media_player_is_playing(self)
 
@@ -3788,10 +3792,10 @@ class MediaPlayer(_Ctype):
         The drawable is an NSObject that follow the VLCOpenGLVideoViewEmbedding
         protocol:
         @code.m
-        \@protocol VLCOpenGLVideoViewEmbedding <NSObject>
+        @protocol VLCOpenGLVideoViewEmbedding <NSObject>
         - (void)addVoutSubview:(NSView *)view;
         - (void)removeVoutSubview:(NSView *)view;
-        \@end
+        @end
         @endcode
         Or it can be an NSView object.
         If you want to use it along with Qt see the QMacCocoaViewContainer. Then
@@ -3970,7 +3974,7 @@ class MediaPlayer(_Ctype):
 
     def will_play(self):
         """Is the player able to play.
-        @return: boolean \libvlc_return_bool.
+        @return: boolean libvlc_return_bool.
         """
         return libvlc_media_player_will_play(self)
 
@@ -4036,19 +4040,19 @@ class MediaPlayer(_Ctype):
 
     def is_seekable(self):
         """Is this media player seekable?
-        @return: true if the media player can seek \libvlc_return_bool.
+        @return: true if the media player can seek libvlc_return_bool.
         """
         return libvlc_media_player_is_seekable(self)
 
     def can_pause(self):
         """Can this media player be paused?
-        @return: true if the media player can pause \libvlc_return_bool.
+        @return: true if the media player can pause libvlc_return_bool.
         """
         return libvlc_media_player_can_pause(self)
 
     def program_scrambled(self):
         """Check if the current program is scrambled.
-        @return: true if the current program is scrambled \libvlc_return_bool.
+        @return: true if the current program is scrambled libvlc_return_bool.
         @version: LibVLC 2.2.0 or later.
         """
         return libvlc_media_player_program_scrambled(self)
@@ -4107,7 +4111,7 @@ class MediaPlayer(_Ctype):
 
     def get_fullscreen(self):
         """Get current fullscreen status.
-        @return: the fullscreen status (boolean) \libvlc_return_bool.
+        @return: the fullscreen status (boolean) libvlc_return_bool.
         """
         return libvlc_get_fullscreen(self)
 
@@ -4654,7 +4658,7 @@ def libvlc_media_player_get_fps(p_mi):
     This function is provided for backward compatibility. It cannot deal with
     multiple video tracks. In LibVLC versions prior to 3.0, it would also fail
     if the file format did not convey the frame rate explicitly.
-    \deprecated Consider using L{libvlc_media_tracks_get}() instead.
+    deprecated Consider using L{libvlc_media_tracks_get}() instead.
     @param p_mi: the Media Player.
     @return: frames per second (fps) for this playing movie, or 0 if unspecified.
     """
@@ -4665,7 +4669,7 @@ def libvlc_media_player_get_fps(p_mi):
 
 
 def libvlc_media_player_set_agl(p_mi, drawable):
-    """\deprecated Use L{libvlc_media_player_set_nsobject}() instead."""
+    """deprecated Use L{libvlc_media_player_set_nsobject}() instead."""
     f = _Cfunctions.get("libvlc_media_player_set_agl", None) or _Cfunction(
         "libvlc_media_player_set_agl",
         (
@@ -4681,7 +4685,7 @@ def libvlc_media_player_set_agl(p_mi, drawable):
 
 
 def libvlc_media_player_get_agl(p_mi):
-    """\deprecated Use L{libvlc_media_player_get_nsobject}() instead."""
+    """deprecated Use L{libvlc_media_player_get_nsobject}() instead."""
     f = _Cfunctions.get("libvlc_media_player_get_agl", None) or _Cfunction(
         "libvlc_media_player_get_agl", ((1,),), None, ctypes.c_uint32, MediaPlayer
     )
@@ -4689,7 +4693,7 @@ def libvlc_media_player_get_agl(p_mi):
 
 
 def libvlc_track_description_release(p_track_description):
-    """\deprecated Use L{libvlc_track_description_list_release}() instead."""
+    """deprecated Use L{libvlc_track_description_list_release}() instead."""
     f = _Cfunctions.get("libvlc_track_description_release", None) or _Cfunction(
         "libvlc_track_description_release",
         ((1,),),
@@ -4702,7 +4706,7 @@ def libvlc_track_description_release(p_track_description):
 
 def libvlc_video_get_height(p_mi):
     """Get current video height.
-    \deprecated Use L{libvlc_video_get_size}() instead.
+    deprecated Use L{libvlc_video_get_size}() instead.
     @param p_mi: the media player.
     @return: the video pixel height or 0 if not applicable.
     """
@@ -4714,7 +4718,7 @@ def libvlc_video_get_height(p_mi):
 
 def libvlc_video_get_width(p_mi):
     """Get current video width.
-    \deprecated Use L{libvlc_video_get_size}() instead.
+    deprecated Use L{libvlc_video_get_size}() instead.
     @param p_mi: the media player.
     @return: the video pixel width or 0 if not applicable.
     """
@@ -4761,7 +4765,7 @@ def libvlc_video_get_chapter_description(p_mi, i_title):
 
 def libvlc_video_set_subtitle_file(p_mi, psz_subtitle):
     """Set new video subtitle file.
-    \deprecated Use L{libvlc_media_player_add_slave}() instead.
+    deprecated Use L{libvlc_media_player_add_slave}() instead.
     @param p_mi: the media player.
     @param psz_subtitle: new video subtitle file.
     @return: the success status (boolean).
@@ -4782,7 +4786,7 @@ def libvlc_video_set_subtitle_file(p_mi, psz_subtitle):
 
 def libvlc_toggle_teletext(p_mi):
     """Toggle teletext transparent status on video output.
-    \deprecated use L{libvlc_video_set_teletext}() instead.
+    deprecated use L{libvlc_video_set_teletext}() instead.
     @param p_mi: the media player.
     """
     f = _Cfunctions.get("libvlc_toggle_teletext", None) or _Cfunction(
@@ -4793,7 +4797,7 @@ def libvlc_toggle_teletext(p_mi):
 
 def libvlc_audio_output_device_count(p_instance, psz_audio_output):
     """Backward compatibility stub. Do not use in new code.
-    \deprecated Use L{libvlc_audio_output_device_list_get}() instead.
+    deprecated Use L{libvlc_audio_output_device_list_get}() instead.
     @return: always 0.
     """
     f = _Cfunctions.get("libvlc_audio_output_device_count", None) or _Cfunction(
@@ -4812,7 +4816,7 @@ def libvlc_audio_output_device_count(p_instance, psz_audio_output):
 
 def libvlc_audio_output_device_longname(p_instance, psz_output, i_device):
     """Backward compatibility stub. Do not use in new code.
-    \deprecated Use L{libvlc_audio_output_device_list_get}() instead.
+    deprecated Use L{libvlc_audio_output_device_list_get}() instead.
     @return: always None.
     """
     f = _Cfunctions.get("libvlc_audio_output_device_longname", None) or _Cfunction(
@@ -4833,7 +4837,7 @@ def libvlc_audio_output_device_longname(p_instance, psz_output, i_device):
 
 def libvlc_audio_output_device_id(p_instance, psz_audio_output, i_device):
     """Backward compatibility stub. Do not use in new code.
-    \deprecated Use L{libvlc_audio_output_device_list_get}() instead.
+    deprecated Use L{libvlc_audio_output_device_list_get}() instead.
     @return: always None.
     """
     f = _Cfunctions.get("libvlc_audio_output_device_id", None) or _Cfunction(
@@ -4856,7 +4860,7 @@ def libvlc_media_parse(p_md):
     """Parse a media.
     This fetches (local) art, meta data and tracks information.
     The method is synchronous.
-    \deprecated This function could block indefinitely.
+    deprecated This function could block indefinitely.
                 Use L{libvlc_media_parse_with_options}() instead
     See L{libvlc_media_parse_with_options}
     See L{libvlc_media_get_meta}
@@ -4876,7 +4880,7 @@ def libvlc_media_parse_async(p_md):
     To track when this is over you can listen to libvlc_MediaParsedChanged
     event. However if the media was already parsed you will not receive this
     event.
-    \deprecated You can't be sure to receive the libvlc_MediaParsedChanged
+    deprecated You can't be sure to receive the libvlc_MediaParsedChanged
                 event (you can wait indefinitely for this event).
                 Use L{libvlc_media_parse_with_options}() instead
     See L{libvlc_media_parse}
@@ -4893,11 +4897,11 @@ def libvlc_media_parse_async(p_md):
 
 def libvlc_media_is_parsed(p_md):
     """Return true is the media descriptor object is parsed
-    \deprecated This can return true in case of failure.
+    deprecated This can return true in case of failure.
                 Use L{libvlc_media_get_parsed_status}() instead
     See libvlc_MediaParsedChanged.
     @param p_md: media descriptor object.
-    @return: true if media object has been parsed otherwise it returns false \libvlc_return_bool.
+    @return: true if media object has been parsed otherwise it returns false libvlc_return_bool.
     """
     f = _Cfunctions.get("libvlc_media_is_parsed", None) or _Cfunction(
         "libvlc_media_is_parsed", ((1,),), None, ctypes.c_int, Media
@@ -4910,7 +4914,7 @@ def libvlc_media_get_tracks_info(p_md):
     Note, you need to call L{libvlc_media_parse}() or play the media at least once
     before calling this function.
     Not doing this will result in an empty array.
-    \deprecated Use L{libvlc_media_tracks_get}() instead.
+    deprecated Use L{libvlc_media_tracks_get}() instead.
     @param p_md: media descriptor object.
     @param tracks: address to store an allocated array of Elementary Streams descriptions (must be freed by the caller) [OUT].
     @return: the number of Elementary Streams.
@@ -4930,7 +4934,7 @@ def libvlc_media_get_tracks_info(p_md):
 
 
 def libvlc_media_discoverer_new_from_name(p_inst, psz_name):
-    """\deprecated Use L{libvlc_media_discoverer_new}() and L{libvlc_media_discoverer_start}()."""
+    """deprecated Use L{libvlc_media_discoverer_new}() and L{libvlc_media_discoverer_start}()."""
     f = _Cfunctions.get("libvlc_media_discoverer_new_from_name", None) or _Cfunction(
         "libvlc_media_discoverer_new_from_name",
         (
@@ -4947,7 +4951,7 @@ def libvlc_media_discoverer_new_from_name(p_inst, psz_name):
 
 def libvlc_media_discoverer_localized_name(p_mdis):
     """Get media service discover object its localized name.
-    \deprecated Useless, use L{libvlc_media_discoverer_list_get}() to get the
+    deprecated Useless, use L{libvlc_media_discoverer_list_get}() to get the
     longname of the service discovery.
     @param p_mdis: media discover object.
     @return: localized name or None if the media_discoverer is not started.
@@ -4964,7 +4968,7 @@ def libvlc_media_discoverer_localized_name(p_mdis):
 
 def libvlc_media_discoverer_event_manager(p_mdis):
     """Get event manager from media service discover object.
-    \deprecated Useless, media_discoverer events are only triggered when calling
+    deprecated Useless, media_discoverer events are only triggered when calling
     L{libvlc_media_discoverer_start}() and L{libvlc_media_discoverer_stop}().
     @param p_mdis: media service discover object.
     @return: event manager object.
@@ -6028,7 +6032,7 @@ def libvlc_media_get_stats(p_md, p_stats):
     """Get the current statistics about the media.
     @param p_md:: media descriptor object.
     @param p_stats:: structure that contain the statistics about the media (this structure must be allocated by the caller).
-    @return: true if the statistics are available, false otherwise \libvlc_return_bool.
+    @return: true if the statistics are available, false otherwise libvlc_return_bool.
     """
     f = _Cfunctions.get("libvlc_media_get_stats", None) or _Cfunction(
         "libvlc_media_get_stats",
@@ -6436,7 +6440,7 @@ def libvlc_media_discoverer_media_list(p_mdis):
 def libvlc_media_discoverer_is_running(p_mdis):
     """Query if media service discover object is running.
     @param p_mdis: media service discover object.
-    @return: true if running, false if not \libvlc_return_bool.
+    @return: true if running, false if not libvlc_return_bool.
     """
     f = _Cfunctions.get("libvlc_media_discoverer_is_running", None) or _Cfunction(
         "libvlc_media_discoverer_is_running",
@@ -6754,7 +6758,7 @@ def libvlc_media_list_index_of_item(p_ml, p_md):
 def libvlc_media_list_is_readonly(p_ml):
     """This indicates if this media list is read-only from a user point of view.
     @param p_ml: media list instance.
-    @return: 1 on readonly, 0 on readwrite \libvlc_return_bool.
+    @return: 1 on readonly, 0 on readwrite libvlc_return_bool.
     """
     f = _Cfunctions.get("libvlc_media_list_is_readonly", None) or _Cfunction(
         "libvlc_media_list_is_readonly", ((1,),), None, ctypes.c_int, MediaList
@@ -6954,7 +6958,7 @@ def libvlc_media_list_player_set_pause(p_mlp, do_pause):
 def libvlc_media_list_player_is_playing(p_mlp):
     """Is media list playing?
     @param p_mlp: media list player instance.
-    @return: true for playing and false for not playing \libvlc_return_bool.
+    @return: true for playing and false for not playing libvlc_return_bool.
     """
     f = _Cfunctions.get("libvlc_media_list_player_is_playing", None) or _Cfunction(
         "libvlc_media_list_player_is_playing",
@@ -7184,7 +7188,7 @@ def libvlc_media_player_event_manager(p_mi):
 def libvlc_media_player_is_playing(p_mi):
     """is_playing.
     @param p_mi: the Media Player.
-    @return: 1 if the media player is playing, 0 otherwise \libvlc_return_bool.
+    @return: 1 if the media player is playing, 0 otherwise libvlc_return_bool.
     """
     f = _Cfunctions.get("libvlc_media_player_is_playing", None) or _Cfunction(
         "libvlc_media_player_is_playing", ((1,),), None, ctypes.c_int, MediaPlayer
@@ -7381,10 +7385,10 @@ def libvlc_media_player_set_nsobject(p_mi, drawable):
     The drawable is an NSObject that follow the VLCOpenGLVideoViewEmbedding
     protocol:
     @code.m
-    \@protocol VLCOpenGLVideoViewEmbedding <NSObject>
+    @protocol VLCOpenGLVideoViewEmbedding <NSObject>
     - (void)addVoutSubview:(NSView *)view;
     - (void)removeVoutSubview:(NSView *)view;
-    \@end
+    @end
     @endcode
     Or it can be an NSView object.
     If you want to use it along with Qt see the QMacCocoaViewContainer. Then
@@ -7786,7 +7790,7 @@ def libvlc_media_player_get_chapter_count(p_mi):
 def libvlc_media_player_will_play(p_mi):
     """Is the player able to play.
     @param p_mi: the Media Player.
-    @return: boolean \libvlc_return_bool.
+    @return: boolean libvlc_return_bool.
     """
     f = _Cfunctions.get("libvlc_media_player_will_play", None) or _Cfunction(
         "libvlc_media_player_will_play", ((1,),), None, ctypes.c_int, MediaPlayer
@@ -7935,7 +7939,7 @@ def libvlc_media_player_has_vout(p_mi):
 def libvlc_media_player_is_seekable(p_mi):
     """Is this media player seekable?
     @param p_mi: the media player.
-    @return: true if the media player can seek \libvlc_return_bool.
+    @return: true if the media player can seek libvlc_return_bool.
     """
     f = _Cfunctions.get("libvlc_media_player_is_seekable", None) or _Cfunction(
         "libvlc_media_player_is_seekable", ((1,),), None, ctypes.c_int, MediaPlayer
@@ -7946,7 +7950,7 @@ def libvlc_media_player_is_seekable(p_mi):
 def libvlc_media_player_can_pause(p_mi):
     """Can this media player be paused?
     @param p_mi: the media player.
-    @return: true if the media player can pause \libvlc_return_bool.
+    @return: true if the media player can pause libvlc_return_bool.
     """
     f = _Cfunctions.get("libvlc_media_player_can_pause", None) or _Cfunction(
         "libvlc_media_player_can_pause", ((1,),), None, ctypes.c_int, MediaPlayer
@@ -7957,7 +7961,7 @@ def libvlc_media_player_can_pause(p_mi):
 def libvlc_media_player_program_scrambled(p_mi):
     """Check if the current program is scrambled.
     @param p_mi: the media player.
-    @return: true if the current program is scrambled \libvlc_return_bool.
+    @return: true if the current program is scrambled libvlc_return_bool.
     @version: LibVLC 2.2.0 or later.
     """
     f = _Cfunctions.get("libvlc_media_player_program_scrambled", None) or _Cfunction(
@@ -8108,7 +8112,7 @@ def libvlc_set_fullscreen(p_mi, b_fullscreen):
 def libvlc_get_fullscreen(p_mi):
     """Get current fullscreen status.
     @param p_mi: the media player.
-    @return: the fullscreen status (boolean) \libvlc_return_bool.
+    @return: the fullscreen status (boolean) \\libvlc_return_bool.
     """
     f = _Cfunctions.get("libvlc_get_fullscreen", None) or _Cfunction(
         "libvlc_get_fullscreen", ((1,),), None, ctypes.c_int, MediaPlayer
@@ -10441,6 +10445,7 @@ def libvlc_vlm_get_event_manager(p_instance):
 
 # Start of footer.py #
 
+
 # Backward compatibility
 def callbackmethod(callback):
     """Now obsolete @callbackmethod decorator."""
@@ -10458,7 +10463,7 @@ if not hasattr(dll, "libvlc_free"):
         libc = ctypes.CDLL(libc_path)
         libvlc_free = libc.free
     else:
-        # On win32, it is impossible to guess the proper lib to call
+        # On win32, it is impossible to guess the proper vlcLib to call
         # (msvcrt, mingw...). Just ignore the call: it will memleak,
         # but not prevent to run the application.
         def libvlc_free(p):
