@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from typing import Tuple, Dict, Any
 
-DATA_FOLDER =  "data"
+DATA_FOLDER = "data"
 RECORDS_FOLDER = "records"
 SETTINGS_FILE = Path(os.path.join(DATA_FOLDER, "app_settings.json"))
 ACCOUNTS_FILE = Path(os.path.join(DATA_FOLDER, "xtream_accounts.json"))
@@ -23,4 +23,3 @@ if not os.path.isdir(DATA_FOLDER):
 
 if not os.path.isdir(RECORDS_FOLDER):
     os.makedirs(RECORDS_FOLDER)
-
