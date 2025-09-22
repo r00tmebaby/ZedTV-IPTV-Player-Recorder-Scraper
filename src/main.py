@@ -10,7 +10,7 @@ from account import _add_account_window, _choose_account_window
 from config import ICON
 from layout import sg, layout
 import player
-from models import Data, IpModel
+from models import Data, IpModel, IPTVFileType
 from settings import (
     _remember_last_m3u,
     _remember_last_account,
@@ -87,6 +87,7 @@ async def main():
         elif event == "Open":
             Data.filename = sg.popup_get_file(
                 message="file to open",
+                file_types=IPTVFileType.all_types(),
                 default_path=os.getcwd(),
                 no_window=True,
             )
@@ -96,6 +97,7 @@ async def main():
             Data.filename = sg.popup_get_file(
                 message="file to open",
                 default_path=os.getcwd(),
+                file_types=IPTVFileType.all_types(),
                 no_window=True,
             )
             if Data.filename:
