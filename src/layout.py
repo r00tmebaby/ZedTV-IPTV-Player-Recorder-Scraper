@@ -90,6 +90,7 @@ layout = [
                                             "&Full Screen",
                                             "&Record",
                                             "&Play in VLC",
+                                            "&Stop"
                                         ],
                                     ],
                                     bind_return_key=True,
