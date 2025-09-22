@@ -3,6 +3,20 @@ from typing import List
 import requests
 from pydantic import BaseModel
 
+from enum import Enum
+
+class IPTVFileType(Enum):
+    M3U = ("M3U files", "*.m3u")
+    M3U8 = ("M3U8 files", "*.m3u8")
+    TXT = ("Text files", "*.txt")
+
+    @classmethod
+    def all_types(cls):
+        return tuple(ft.value for ft in cls)
+
+    @classmethod
+    def grouped(cls):
+        return "IPTV Playlists", "*.m3u;*.m3u8;*.txt"
 
 class IpModel(BaseModel):
     ip: str
