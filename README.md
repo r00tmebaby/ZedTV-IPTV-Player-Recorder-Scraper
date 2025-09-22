@@ -48,7 +48,7 @@ ZeDTV is an all-in-one IPTV toolkit: scrape & browse channels, play them, build 
 ## Requirements
 
 ### Python
-- Python **3.10+** recommended
+- Python **3.10+** recommended. Fully support **3.13**
 
 ### PyPI Libraries
 - `PySimpleGUI`
