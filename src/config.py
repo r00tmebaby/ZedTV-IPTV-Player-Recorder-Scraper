@@ -2,7 +2,8 @@ import os
 from pathlib import Path
 from typing import Tuple, Dict, Any
 
-DATA_FOLDER = Path(__file__).parent / "data"
+DATA_FOLDER =  "data"
+RECORDS_FOLDER = "records"
 SETTINGS_FILE = Path(os.path.join(DATA_FOLDER, "app_settings.json"))
 ACCOUNTS_FILE = Path(os.path.join(DATA_FOLDER, "xtream_accounts.json"))
 INVALID_WIN = '<>:"/\\|?*\x00'
@@ -15,3 +16,11 @@ HEADERS = {
     "Upgrade-Insecure-Requests": "1",
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
 }
+
+
+if not os.path.isdir(DATA_FOLDER):
+    os.makedirs(DATA_FOLDER)
+
+if not os.path.isdir(RECORDS_FOLDER):
+    os.makedirs(RECORDS_FOLDER)
+

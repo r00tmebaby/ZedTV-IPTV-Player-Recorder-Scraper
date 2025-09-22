@@ -10,8 +10,8 @@ from urllib.parse import urlparse
 
 import httpx
 
-from config import INVALID_WIN, HEADERS
-from libs import PySimpleGUI as sg
+from config import INVALID_WIN, HEADERS, RECORDS_FOLDER
+import PySimpleGUI as sg
 from models import Data
 
 
@@ -190,7 +190,7 @@ def _safe_filename(name: str, max_len: int = 180) -> str:
 def _build_record_sout(title: str) -> str:
     ts = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     fname = f"{ts} - {_safe_filename(title)}.mp4"
-    dst = (Path("../records") / fname).as_posix()  # VLC-friendly path
+    dst = (Path(RECORDS_FOLDER) / fname).as_posix()  # VLC-friendly path
     return f"sout=#duplicate{{dst=std{{access=file,mux=mp4,dst='{dst}'}},dst=display}}"
 
 

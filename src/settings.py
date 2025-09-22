@@ -6,9 +6,9 @@ from typing import Optional
 
 from account import _accounts_load
 from config import SETTINGS_FILE, DATA_FOLDER
-from libs import PySimpleGUI as sg
+from layout import sg
 from models import Data
-from utils import get_categories, _rows, _build_m3u_from_xtream
+from app import get_categories, _rows, _build_m3u_from_xtream
 
 
 def _settings_load() -> dict:
