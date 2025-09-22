@@ -207,7 +207,7 @@ def _add_account_window():
     layout = [
         [sg.Text("Name", size=(20, 1)), sg.Input(key="_name_", size=(30, 1))],
         [
-            sg.Text("Host (e.g. likan.me)", size=(20, 1)),
+            sg.Text("Host (e.g. liken.me)", size=(20, 1)),
             sg.Input(key="_host_", size=(30, 1)),
         ],
         [

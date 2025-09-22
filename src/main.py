@@ -212,7 +212,8 @@ async def main():
         elif event == "_table_countries_" and Data.categories:
             Data.selected_list = await generate_list(values, Data.categories)
             window["_iptv_content_"].update(await get_selected())
-
+        elif event == "Stop":
+            Player.players.stop()
         elif (
             event in ["_iptv_content_", "Record", "Full Screen", "Play in VLC"]
             and len(values["_iptv_content_"]) == 1
@@ -230,6 +231,7 @@ async def main():
 
             if event == "Play in VLC":
                 _launch_vlc_external(media_link)
+                Player.players.stop()
                 continue
 
             if event == "Record":
@@ -238,7 +240,6 @@ async def main():
             else:
                 # just play (normal or full screen)
                 Data.media_instance = Player.vlc_instance.media_new(media_link)
-
             if event == "Full Screen":
                 await asyncio.ensure_future(play(Data.media_instance, True))
             else:
