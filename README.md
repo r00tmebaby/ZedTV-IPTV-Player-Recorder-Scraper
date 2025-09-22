@@ -1,4 +1,4 @@
-# ZeDTV — Scraper, Player, and M3U List Creator
+# ZeDTV — IPTV Scraper, Player, Recorder and M3U List Creator
 <img src="MEDIA/1.png" alt="ZeDTV screenshot">
 <img src="MEDIA/2.png" alt="ZeDTV screenshot">
 <img src="MEDIA/3.png" alt="ZeDTV screenshot">
