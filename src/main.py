@@ -183,7 +183,8 @@ async def main():
                 )
             else:
                 sg.popup_error(
-                    "No current Xtream account. Use Xtream → Add Account first.",
+                    "No current Xtream account. "
+                    "Use Xtream → Add Account first.",
                     keep_on_top=True,
                 )
 
