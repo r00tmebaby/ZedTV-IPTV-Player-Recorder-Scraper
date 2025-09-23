@@ -26,8 +26,10 @@ def _format_account_info(info: dict) -> str:
         f"is_trial: {ui.get('is_trial','')}\n"
         f"active_cons: {ui.get('active_cons','')}\n"
         f"max_connections: {ui.get('max_connections','')}\n"
-        f"created_at: {ui.get('created_at','')}  ({_epoch_to_str(ui.get('created_at'))})\n"
-        f"exp_date: {ui.get('exp_date','')}  ({_epoch_to_str(ui.get('exp_date'))})\n"
+        f"created_at: {ui.get('created_at','')}  "
+        f"({_epoch_to_str(ui.get('created_at'))})\n"
+        f"exp_date: {ui.get('exp_date','')}  "
+        f"({_epoch_to_str(ui.get('exp_date'))})\n"
         f"allowed_output_formats: {allowed}\n\n"
         "=== SERVER INFO ===\n"
         f"url: {si.get('url','')}\n"
@@ -187,7 +189,7 @@ def _save_snapshot(name: str, acc: dict, info: dict) -> None:
 
 
 def _refresh_snapshot_now(name: str, acc: dict) -> dict:
-    """Refetch from API and update saved snapshot for that account. Returns info dict."""
+    """Refetch from API and update saved snapshot for that account"""
     info = _xtream_api(acc["base"], acc["username"], acc["password"])
     _save_snapshot(name, acc, info)
     return info
@@ -257,7 +259,6 @@ def _add_account_window():
                         "base": base,
                         "username": v["_user_"],
                         "password": v["_pass_"],
-                        # 🚩 Save full API reply as a snapshot for instant table rendering later
                         "snapshot": {
                             **info,
                             "_fetched_at": datetime.now(

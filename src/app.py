@@ -55,7 +55,8 @@ def _launch_vlc_external(url: str) -> None:
     cmd = _detect_vlc()
     if not cmd:
         sg.popup_error(
-            "VLC executable not found. Please install VLC or add it to PATH.",
+            "VLC executable not found. "
+            "Please install VLC or add it to PATH.",
             keep_on_top=True,
         )
         return
@@ -95,7 +96,7 @@ async def get_selected() -> List[List[str]]:
     Build rows for the right-hand table from the selected category:
     [Title, Rating, Year, Group]
     Pulls attributes directly from the EXTINF line.
-    Falls back to Data.xtream_catalog (if present) when EXTINF lacks rating/year.
+    Falls back to Data.xtream_catalog (if present).
     """
     rows: List[List[str]] = []
 
@@ -114,7 +115,7 @@ async def get_selected() -> List[List[str]]:
         title = re.search(r'tvg-name="(.*?)"', extinf)
         rating = re.search(r'rating="(.*?)"', extinf)
         releasedate = re.search(r'releasedate="(.*?)"', extinf)
-        sid = re.search(r'tvg-id="(\d+)"', extinf)  # stream_id if available
+        sid = re.search(r'tvg-id="(\d+)"', extinf)
 
         title = title.group(1) if title else ""
         rating_val = (rating.group(1) if rating else "") or ""
@@ -191,7 +192,10 @@ def _build_record_sout(title: str) -> str:
     ts = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     fname = f"{ts} - {_safe_filename(title)}.mp4"
     dst = (Path(RECORDS_FOLDER) / fname).as_posix()  # VLC-friendly path
-    return f"sout=#duplicate{{dst=std{{access=file,mux=mp4,dst='{dst}'}},dst=display}}"
+    return (
+        f"sout=#duplicate{{dst=std{{access=file,mux=mp4,dst='{dst}'}},"
+        f"dst=display}}"
+    )
 
 
 def _normalize_base(
@@ -306,9 +310,15 @@ def _build_m3u_from_xtream(
 
         # EXTINF with extras
         lines.append(
-            f'#EXTINF:-1 tvg-id="{stream_id}" tvg-name="{name}" tvg-logo="{logo}" '
-            f'group-title="[VOD] {ctitle}" rating="{rating}" releasedate="{releasedate}" '
-            f'director="{director}" plot="{plot}",{name}'
+            f"#EXTINF:-1 "
+            f'tvg-id="{stream_id}" '
+            f'tvg-name="{name}" '
+            f'tvg-logo="{logo}" '
+            f'group-title="[VOD] {ctitle}" '
+            f'rating="{rating}" '
+            f'releasedate="{releasedate}" '
+            f'director="{director}" '
+            f'plot="{plot}",{name}'
         )
         lines.append(url)
 

@@ -40,7 +40,7 @@ def _settings_set(**kwargs) -> None:
 def _load_xtream_into_app(
     window: sg.Window, base: str, username: str, password: str
 ):
-    """Build M3U cache + rich catalog, point Data.filename, refresh category table."""
+    """Build M3U cache + rich catalog, point Data.filename"""
     text, catalog = _build_m3u_from_xtream(base, username, password)
 
     cache = Path(os.path.join(DATA_FOLDER, f"xtream_{username}.m3u"))
