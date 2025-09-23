@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 from enum import Enum
 
+
 class IPTVFileType(Enum):
     M3U = ("M3U files", "*.m3u")
     M3U8 = ("M3U8 files", "*.m3u8")
@@ -17,6 +18,7 @@ class IPTVFileType(Enum):
     @classmethod
     def grouped(cls):
         return "IPTV Playlists", "*.m3u;*.m3u8;*.txt"
+
 
 class IpModel(BaseModel):
     ip: str
