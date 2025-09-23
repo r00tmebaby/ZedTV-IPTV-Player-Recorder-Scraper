@@ -46,9 +46,13 @@ async def main():
 
         if not full_screen:
             if platform.startswith("linux"):
-                Player.players.set_xwindow(window["_canvas_video_"].Widget.winfo_id())
+                Player.players.set_xwindow(
+                    window["_canvas_video_"].Widget.winfo_id()
+                )
             else:
-                Player.players.set_hwnd(window["_canvas_video_"].Widget.winfo_id())
+                Player.players.set_hwnd(
+                    window["_canvas_video_"].Widget.winfo_id()
+                )
 
         Player.players.play()
 
@@ -68,7 +72,9 @@ async def main():
         pass
 
     class Player:
-        vlc_instance = player.Instance("streamlink --width=200 --aout=directsound")
+        vlc_instance = player.Instance(
+            "streamlink --width=200 --aout=directsound"
+        )
         players = vlc_instance.media_player_new()
 
     while True:
@@ -104,7 +110,11 @@ async def main():
                 Data.categories = get_categories()
                 window["_table_countries_"].update(_rows(Data.categories))
                 _remember_last_m3u(Data.filename)
-        elif event == "Custom List" and Data.filename and values["_table_countries_"]:
+        elif (
+            event == "Custom List"
+            and Data.filename
+            and values["_table_countries_"]
+        ):
             generate_window = sg.Window(
                 "IP Address Info",
                 layout=[
@@ -163,7 +173,9 @@ async def main():
                 )
                 sg.popup(f"Using account: {name}", keep_on_top=True)
 
-        elif event == "Reload from Current" and Data.xtream_account is not None:
+        elif (
+            event == "Reload from Current" and Data.xtream_account is not None
+        ):
             acc = Data.xtream_account
             if acc:
                 _load_xtream_into_app(
@@ -238,7 +250,9 @@ async def main():
 
             if event == "Record":
                 sout = _build_record_sout(title)
-                Data.media_instance = Player.vlc_instance.media_new(media_link, sout)
+                Data.media_instance = Player.vlc_instance.media_new(
+                    media_link, sout
+                )
             else:
                 # just play (normal or full screen)
                 Data.media_instance = Player.vlc_instance.media_new(media_link)
@@ -258,14 +272,18 @@ async def main():
         elif event == "_ch_search_btn" and Data.filename:
             if values["_ch_search_"]:
                 temp_list = []
-                Data.selected_list = await generate_list(values, Data.categories)
+                Data.selected_list = await generate_list(
+                    values, Data.categories
+                )
                 for i, channel in enumerate(await get_selected()):
                     if values["_ch_search_"].lower() in channel[0].lower():
                         temp_list.append(Data.selected_list[i])
                 Data.selected_list = temp_list
                 window["_iptv_content_"].update(await get_selected())
             else:
-                Data.selected_list = await generate_list(values, Data.categories)
+                Data.selected_list = await generate_list(
+                    values, Data.categories
+                )
                 window["_iptv_content_"].update(await get_selected())
         if event is not sg.TIMEOUT_KEY:
             if len(event) == 1:

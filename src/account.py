@@ -235,7 +235,9 @@ def _add_account_window():
             )
         ],
     ]
-    w = sg.Window("Add Xtream Account", layout, modal=True, keep_on_top=True, icon=ICON)
+    w = sg.Window(
+        "Add Xtream Account", layout, modal=True, keep_on_top=True, icon=ICON
+    )
     while True:
         e, v = w.read()
         if e in (sg.WIN_CLOSED, "Cancel"):
@@ -258,7 +260,9 @@ def _add_account_window():
                         # 🚩 Save full API reply as a snapshot for instant table rendering later
                         "snapshot": {
                             **info,
-                            "_fetched_at": datetime.now(timezone.utc).isoformat(),
+                            "_fetched_at": datetime.now(
+                                timezone.utc
+                            ).isoformat(),
                         },
                     }
                     _accounts_save_one(name, acc)
@@ -275,6 +279,8 @@ def _add_account_window():
                     return {"name": name, **acc}
 
                 else:
-                    sg.popup_error("Auth failed (not Active?).", keep_on_top=True)
+                    sg.popup_error(
+                        "Auth failed (not Active?).", keep_on_top=True
+                    )
             except Exception as ex:
                 sg.popup_error(f"Error: {ex}", keep_on_top=True)
