@@ -1,7 +1,14 @@
-# ZeDTV — IPTV Scraper, Player, Recorder and M3U List Creator
+# ZeDTV - IPTV Scraper, Player, Recorder and M3U List Creator
 <img src="MEDIA/1.png" alt="ZeDTV screenshot">
 <img src="MEDIA/2.png" alt="ZeDTV screenshot">
 <img src="MEDIA/3.png" alt="ZeDTV screenshot">
+<img src="MEDIA/4.png" alt="ZeDTV screenshot">
+<img src="MEDIA/5.png" alt="ZeDTV screenshot">
+<img src="MEDIA/6.png" alt="ZeDTV screenshot">
+<img src="MEDIA/7.png" alt="ZeDTV screenshot">
+<img src="MEDIA/8.png" alt="ZeDTV screenshot">
+<img src="MEDIA/9.png" alt="ZeDTV screenshot">
+<img src="MEDIA/10.png" alt="ZeDTV screenshot">
 
 ## Overview
 ZeDTV is an all-in-one IPTV toolkit: scrape & browse channels, play them, build your own M3U lists, and (new!) connect directly to **Xtream Codes / Xtream UI** portals with account management and offline snapshots. The GUI (PySimpleGUI) keeps things simple while still exposing power features like metadata extraction and one-click playback/recording.
@@ -10,10 +17,29 @@ ZeDTV is an all-in-one IPTV toolkit: scrape & browse channels, play them, build 
 
 ## What's New (v1.5)
 - **Major UI Overhaul**
+  - Changed the layout from static to dynamic windows which can be decoupled from the main video canvas (winamp like)
   - Clean, modern tabbed interface for all settings windows
+  - Filter categories and channels with instant search boxes
+  - New Logs menu with options to view current log and open logs folder
+  - Added background image when idle (no playback)
+  - Added loading spinner when loading M3U or switching accounts
+  - Improved overall user experience and navigation
+  - Added helpful tooltips on buttons and inputs
+  - Added help menu with links to README, issues, license
+  - Consistent design language and polished look & feel
+  - Improved usability with logical grouping and better spacing
+  - 70+ color themes with live preview
+  - Customizable fonts and sizes for all UI elements
+  - One-click font size presets (Small/Medium/Large/XL)
+  - Better readability with larger fonts throughout
+  - Reorganized VLC settings into tabs (Network, Video & Audio, Advanced)
+  - Added dedicated logging settings window with clear options
+  - IP Info window with working Refresh button
+  - Consistent layouts across all settings windows
+  - Improved error handling with user-friendly messages
+  - Fixed various minor bugs and UI glitches
   - Settings organized into logical groups (no more endless scrolling!)
-  - Professional spacing, padding, and button alignment throughout
-  - Reorganized menus - removed ugly separators, added dedicated Logs menu
+  - Improved spacing, padding, and button alignment throughout
   - Larger fonts and better readability across the board
   
 - **UI Settings** (tabbed)
