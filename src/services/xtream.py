@@ -5,11 +5,14 @@ fetch categories and streams, then build an M3U playlist and a rich catalog.
 
 NOTE: This module will be relocated to services.xtream; keep name for backward compatibility.
 """
+
 from __future__ import annotations
 
+import ipaddress
 import logging
+import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Tuple, Dict, List
+from typing import Dict, List, Tuple
 from urllib.parse import urlparse
 
 import httpx
@@ -22,17 +25,76 @@ logger = logging.getLogger("zedtv.xtream")
 def _normalize_base(host_or_url: str, port: int | None = None, prefer_https: bool = False) -> str:
     """Return base like http(s)://host:port suitable for Xtream paths.
 
-    - Accepts either a host or full URL
-    - Ensures scheme and explicit port are present
+    Handles hostnames, IPv4, IPv6 (with or without brackets), and full URLs.
     """
-    url = host_or_url.strip()
-    if not url.lower().startswith("http://") and not url.lower().startswith("https://"):
-        url = ("https://" if prefer_https else "http://") + url
-    u = urlparse(url)
-    scheme = "https" if (prefer_https or u.scheme == "https") else "http"
-    host = u.hostname or host_or_url
-    p = port or (u.port or (443 if scheme == "https" else 80))
-    return f"{scheme}://{host}:{p}"
+    logger.debug("_normalize_base host_or_url=%s port=%s prefer_https=%s", host_or_url, port, prefer_https)
+    raw = (host_or_url or "").strip()
+    if not raw:
+        # Fallback safe default
+        scheme = "https" if prefer_https else "http"
+        return f"{scheme}://localhost:{443 if scheme == 'https' else 80}"
+
+    has_scheme = re.match(r"^https?://", raw, re.I) is not None
+
+    # If the input already has a scheme, rely on urlparse but carefully format IPv6
+    if has_scheme:
+        u = urlparse(raw)
+        scheme = "https" if (prefer_https or u.scheme == "https") else "http"
+        host = u.hostname or "localhost"
+        # Bracket IPv6 literal for output if needed
+        if host and ":" in host and not host.startswith("["):
+            try:
+                if ipaddress.ip_address(host).version == 6:
+                    host = f"[{ipaddress.ip_address(host).compressed}]"
+            except Exception:
+                pass
+        p = port or (u.port or (443 if scheme == "https" else 80))
+        return f"{scheme}://{host}:{p}"
+
+    # No scheme provided: treat as host (possibly with port)
+    host_part = raw
+    detected_port: int | None = None
+    host_out = host_part
+
+    # Case 1: Bracketed IPv6, optionally with :port
+    m = re.match(r"^\[(?P<ipv6>[^\]]+)\](?::(?P<p>\d+))?$", host_part)
+    if m:
+        addr = m.group("ipv6")
+        try:
+            ip = ipaddress.ip_address(addr)
+            if ip.version == 6:
+                host_out = f"[{ip.compressed}]"
+                if m.group("p"):
+                    try:
+                        detected_port = int(m.group("p"))
+                    except Exception:
+                        detected_port = None
+        except Exception:
+            # Fall through leaving host_out as-is
+            pass
+    else:
+        # Case 2: Unbracketed IPv6 literal (multiple colons) without port
+        if host_part.count(":") >= 2:
+            try:
+                ip = ipaddress.ip_address(host_part)
+                if ip.version == 6:
+                    host_out = f"[{ip.compressed}]"
+            except Exception:
+                # Not a pure IPv6 literal; could be hostname with colon issues
+                pass
+        else:
+            # Case 3: hostname/IPv4, optional :port
+            if ":" in host_part:
+                name, _, pstr = host_part.partition(":")
+                host_out = name
+                if pstr.isdigit():
+                    detected_port = int(pstr)
+            else:
+                host_out = host_part
+
+    scheme = "https" if prefer_https else "http"
+    p = port or detected_port or (443 if scheme == "https" else 80)
+    return f"{scheme}://{host_out}:{p}"
 
 
 def _xtream_api(base: str, username: str, password: str, **params) -> dict:
@@ -158,5 +220,5 @@ def _build_m3u_from_xtream(base: str, username: str, password: str) -> Tuple[str
             }
         )
 
-    logger.info("Xtream build complete live=%d vod=%d", len(catalog['live']), len(catalog['vod']))
+    logger.info("Xtream build complete live=%d vod=%d", len(catalog["live"]), len(catalog["vod"]))
     return "\n".join(lines), catalog

@@ -2,41 +2,37 @@
 ZedTV IPTV Player - Kivy Version
 Modern UI with real thumbnail support
 """
-from __version__ import FULL_VERSION_STRING, APP_AUTHOR, APP_YEAR
-
-from kivy.app import App
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.gridlayout import GridLayout
-from kivy.uix.scrollview import ScrollView
-from kivy.uix.button import Button
-from kivy.uix.label import Label
-from kivy.uix.image import AsyncImage
-from kivy.uix.textinput import TextInput
-from kivy.uix.popup import Popup
-from kivy.uix.recycleview import RecycleView
-from kivy.uix.recycleview.views import RecycleDataViewBehavior
-from kivy.uix.recyclegridlayout import RecycleGridLayout
-from kivy.uix.behaviors import FocusBehavior
-from kivy.uix.recycleview.layout import LayoutSelectionBehavior
-from kivy.properties import BooleanProperty, StringProperty, NumericProperty, ObjectProperty
-from kivy.core.window import Window
-from kivy.clock import Clock
-from kivy.graphics import Color, Rectangle
-
-import asyncio
-from pathlib import Path
-from typing import List, Dict, Any
 
 # Import existing logic
 import sys
+from pathlib import Path
+
+from kivy.app import App
+from kivy.clock import Clock
+from kivy.core.window import Window
+from kivy.graphics import Color, Rectangle
+from kivy.properties import BooleanProperty, NumericProperty, StringProperty
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.image import AsyncImage
+from kivy.uix.label import Label
+from kivy.uix.popup import Popup
+from kivy.uix.recycleview import RecycleView
+from kivy.uix.recycleview.views import RecycleDataViewBehavior
+from kivy.uix.scrollview import ScrollView
+from kivy.uix.textinput import TextInput
+
+from __version__ import APP_AUTHOR, APP_YEAR, FULL_VERSION_STRING
+
 sys.path.insert(0, str(Path(__file__).parent))
 
+import player as vlc_player
+from app import _rows, get_categories, get_selected
 from models import Data
-from app import get_categories, get_selected, _rows
 from thumbnails import get_thumbnail_path
 from ui_settings import UISettings
 from vlc_settings import VLCSettings
-import player as vlc_player
 
 
 class ChannelItem(RecycleDataViewBehavior, BoxLayout):
@@ -51,7 +47,7 @@ class ChannelItem(RecycleDataViewBehavior, BoxLayout):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.orientation = 'horizontal'
+        self.orientation = "horizontal"
         self.size_hint_y = None
         self.height = 120
         self.padding = [5, 5]
@@ -67,27 +63,27 @@ class ChannelItem(RecycleDataViewBehavior, BoxLayout):
         self.add_widget(self.thumbnail)
 
         # Info layout
-        info_layout = BoxLayout(orientation='vertical', spacing=5)
+        info_layout = BoxLayout(orientation="vertical", spacing=5)
 
         self.title_label = Label(
             text="",
             size_hint_y=0.5,
-            font_size='16sp',
-            halign='left',
-            valign='middle',
+            font_size="16sp",
+            halign="left",
+            valign="middle",
             color=(1, 1, 1, 1),
         )
-        self.title_label.bind(size=self.title_label.setter('text_size'))
+        self.title_label.bind(size=self.title_label.setter("text_size"))
 
         self.info_label = Label(
             text="",
             size_hint_y=0.3,
-            font_size='12sp',
-            halign='left',
-            valign='top',
+            font_size="12sp",
+            halign="left",
+            valign="top",
             color=(0.8, 0.8, 0.8, 1),
         )
-        self.info_label.bind(size=self.info_label.setter('text_size'))
+        self.info_label.bind(size=self.info_label.setter("text_size"))
 
         info_layout.add_widget(self.title_label)
         info_layout.add_widget(self.info_label)
@@ -146,7 +142,7 @@ class ChannelItem(RecycleDataViewBehavior, BoxLayout):
         if self.collide_point(*touch.pos):
             # Handle selection
             parent_rv = self.parent.parent.parent  # Get RecycleView
-            if hasattr(parent_rv, 'select_channel'):
+            if hasattr(parent_rv, "select_channel"):
                 parent_rv.select_channel(self.index)
             return True
         return super().on_touch_down(touch)
@@ -165,7 +161,7 @@ class ChannelRecycleView(RecycleView):
         self.selected_index = index
         # Update selection state
         for i, item in enumerate(self.data):
-            item['is_selected'] = (i == index)
+            item["is_selected"] = i == index
         self.refresh_from_data()
 
     def get_selected_index(self):
@@ -191,7 +187,7 @@ class IPTVPlayerApp(App):
         Window.clearcolor = (0.1, 0.1, 0.1, 1)
 
         # Main layout
-        main_layout = BoxLayout(orientation='vertical', spacing=5, padding=5)
+        main_layout = BoxLayout(orientation="vertical", spacing=5, padding=5)
 
         # Menu bar
         menu_bar = BoxLayout(size_hint_y=None, height=40, spacing=5)
@@ -202,36 +198,36 @@ class IPTVPlayerApp(App):
         main_layout.add_widget(menu_bar)
 
         # Content area (video + lists)
-        content_layout = BoxLayout(orientation='horizontal', spacing=10)
+        content_layout = BoxLayout(orientation="horizontal", spacing=10)
 
         # Left side: Video player
-        video_layout = BoxLayout(orientation='vertical')
+        video_layout = BoxLayout(orientation="vertical")
 
         # Video canvas (placeholder for VLC)
         self.video_widget = Label(
             text="ZedTV IPTV Player\n\nSelect a channel to play",
-            font_size='20sp',
-            halign='center',
-            valign='middle',
+            font_size="20sp",
+            halign="center",
+            valign="middle",
         )
         self.video_widget.canvas.before.clear()
         with self.video_widget.canvas.before:
             Color(0, 0, 0, 1)
             self.video_bg = Rectangle(size=self.video_widget.size, pos=self.video_widget.pos)
         self.video_widget.bind(
-            size=lambda *args: setattr(self.video_bg, 'size', self.video_widget.size),
-            pos=lambda *args: setattr(self.video_bg, 'pos', self.video_widget.pos)
+            size=lambda *args: setattr(self.video_bg, "size", self.video_widget.size),
+            pos=lambda *args: setattr(self.video_bg, "pos", self.video_widget.pos),
         )
 
         video_layout.add_widget(self.video_widget)
         content_layout.add_widget(video_layout)
 
         # Right side: Categories + Channels
-        lists_layout = BoxLayout(orientation='vertical', size_hint_x=0.4, spacing=10)
+        lists_layout = BoxLayout(orientation="vertical", size_hint_x=0.4, spacing=10)
 
         # Categories
-        cat_layout = BoxLayout(orientation='vertical', size_hint_y=0.5)
-        cat_layout.add_widget(Label(text="Categories", size_hint_y=None, height=30, font_size='14sp'))
+        cat_layout = BoxLayout(orientation="vertical", size_hint_y=0.5)
+        cat_layout.add_widget(Label(text="Categories", size_hint_y=None, height=30, font_size="14sp"))
 
         self.category_search = TextInput(
             hint_text="Search categories...",
@@ -243,7 +239,7 @@ class IPTVPlayerApp(App):
         cat_layout.add_widget(self.category_search)
 
         self.category_list = GridLayout(cols=1, spacing=2, size_hint_y=None)
-        self.category_list.bind(minimum_height=self.category_list.setter('height'))
+        self.category_list.bind(minimum_height=self.category_list.setter("height"))
 
         cat_scroll = ScrollView()
         cat_scroll.add_widget(self.category_list)
@@ -252,8 +248,8 @@ class IPTVPlayerApp(App):
         lists_layout.add_widget(cat_layout)
 
         # Channels
-        ch_layout = BoxLayout(orientation='vertical', size_hint_y=0.5)
-        ch_layout.add_widget(Label(text="Channels", size_hint_y=None, height=30, font_size='14sp'))
+        ch_layout = BoxLayout(orientation="vertical", size_hint_y=0.5)
+        ch_layout.add_widget(Label(text="Channels", size_hint_y=None, height=30, font_size="14sp"))
 
         self.channel_search = TextInput(
             hint_text="Search channels...",
@@ -268,17 +264,17 @@ class IPTVPlayerApp(App):
         from kivy.uix.recycleboxlayout import RecycleBoxLayout
 
         self.channel_recycleview = ChannelRecycleView()
-        self.channel_recycleview.viewclass = 'ChannelItem'
+        self.channel_recycleview.viewclass = "ChannelItem"
 
         # Set layout
         layout = RecycleBoxLayout(
             default_size=(None, 120),
             default_size_hint=(1, None),
             size_hint_y=None,
-            orientation='vertical',
+            orientation="vertical",
             spacing=2,
         )
-        layout.bind(minimum_height=layout.setter('height'))
+        layout.bind(minimum_height=layout.setter("height"))
         self.channel_recycleview.add_widget(layout)
 
         ch_layout.add_widget(self.channel_recycleview)
@@ -303,12 +299,7 @@ class IPTVPlayerApp(App):
         """Update category list."""
         self.category_list.clear_widgets()
         for cat in Data.categories:
-            btn = Button(
-                text=cat,
-                size_hint_y=None,
-                height=40,
-                on_press=lambda btn, c=cat: self.select_category(c)
-            )
+            btn = Button(text=cat, size_hint_y=None, height=40, on_press=lambda btn, c=cat: self.select_category(c))
             self.category_list.add_widget(btn)
 
     def select_category(self, category):
@@ -328,7 +319,7 @@ class IPTVPlayerApp(App):
 
     def show_file_menu(self, instance):
         """Show file menu."""
-        content = BoxLayout(orientation='vertical', spacing=10, padding=10)
+        content = BoxLayout(orientation="vertical", spacing=10, padding=10)
         content.add_widget(Button(text="Open M3U File", on_press=self.open_file))
         content.add_widget(Button(text="Exit", on_press=self.stop))
 
@@ -359,10 +350,10 @@ class IPTVPlayerApp(App):
         pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Register custom widget
     from kivy.factory import Factory
-    Factory.register('ChannelItem', ChannelItem)
+
+    Factory.register("ChannelItem", ChannelItem)
 
     IPTVPlayerApp().run()
-

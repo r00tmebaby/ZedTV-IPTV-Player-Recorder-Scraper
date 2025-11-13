@@ -1,7 +1,7 @@
 # flake8: noqa
 import os
 from pathlib import Path
-from typing import Tuple, Dict, Any
+from typing import Any, Dict, Tuple
 
 DATA_FOLDER = "data"
 RECORDS_FOLDER = "records"

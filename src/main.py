@@ -3,29 +3,30 @@ Main application entry point for ZedTV IPTV Player.
 
 This module orchestrates the application initialization and main event loop.
 """
+
 import asyncio
 import ctypes
 import logging
 from typing import Optional
 
-from __version__ import __version__, FULL_VERSION_STRING, APP_NAME
-from core.config import ICON
-from ui.layout import sg, build_layout
-from core.models import Data
-from core.settings import _auto_restore_last
+from __version__ import APP_NAME, __version__
 from core.app import get_categories
-from core.vlc_settings import VLCSettings
-from core.ui_settings import UISettings
-from core.logging_settings import LoggingSettings
+from core.config import ICON
 from core.logger_setup import init_logging
+from core.logging_settings import LoggingSettings
+from core.models import Data
 from core.player import Player
+from core.settings import _auto_restore_last
+from core.ui_settings import UISettings
+from core.vlc_settings import VLCSettings
 from ui.background import BackgroundManager
-from ui.window_manager import WindowManager
-from ui.splash_screen import SplashScreen
-from ui.event_handlers import EventHandler
 from ui.channel_handler import ChannelHandler
-from utils.playback import play_media, stop_playback
+from ui.event_handlers import EventHandler
+from ui.layout import build_layout, sg
+from ui.splash_screen import SplashScreen
+from ui.window_manager import WindowManager
 from utils.epg_loader import load_epg_async
+from utils.playback import play_media, stop_playback
 from utils.search_handler import SearchHandler
 
 # Module logger (initialized after logging setup)
@@ -35,18 +36,18 @@ log: Optional[logging.Logger] = None
 async def main() -> None:
     """
     Main application entry point and event loop.
-    
+
     Initializes all components, creates UI windows, and runs the main event loop.
     """
     global log
-    
+
     # Initialize logging first
     logging_settings = LoggingSettings()
     app_logger = init_logging(logging_settings.settings)
     log = app_logger.getChild("main")
-    log.info("="*60)
+    log.info("=" * 60)
     log.info("%s v%s starting", APP_NAME, __version__)
-    log.info("="*60)
+    log.info("=" * 60)
     log.debug("Application main() starting")
 
     # Initialize UI settings and theme
@@ -66,9 +67,9 @@ async def main() -> None:
     # Validate Pillow version
     try:
         import PIL
-        from PIL import Image as _Img
-        ver = getattr(PIL, '__version__', 'unknown')
-        if tuple(int(x) for x in ver.split('.')[:2]) < (10, 0):
+
+        ver = getattr(PIL, "__version__", "unknown")
+        if tuple(int(x) for x in ver.split(".")[:2]) < (10, 0):
             log.warning("Pillow version %s < 10.0.0 - consider upgrading", ver)
         else:
             log.debug("Pillow version OK: %s", ver)
@@ -90,7 +91,7 @@ async def main() -> None:
     # Create main window
     splash.update_progress(40, "Creating main window...")
     screen_width = ctypes.windll.user32.GetSystemMetrics(0)
-    
+
     window = sg.Window(
         f"ZED-TV IPTV Player v{__version__}",
         main_layout,
@@ -110,7 +111,7 @@ async def main() -> None:
     splash.update_progress(60, "Creating channel panel...")
     window_manager.create_channel_window(ui_settings)
     splash.update_progress(70)
-    
+
     # Setup window synchronization
     window_manager.setup_window_sync()
     window_manager.bind_search_entries()
@@ -131,7 +132,7 @@ async def main() -> None:
     # Initialize Player
     Player.initialize(vlc_settings)
     log.info("Player initialized")
-    
+
     # Check if using dummy VLC instance and notify user
     if Player.is_dummy_instance():
         try:
@@ -141,7 +142,7 @@ async def main() -> None:
                 "• Install VLC, or\n"
                 "• Set PYTHON_VLC_LIB_PATH to libvlc.dll and PYTHON_VLC_MODULE_PATH to VLC plugins folder, or\n"
                 "• Use 'Play in VLC' to launch external VLC.",
-                keep_on_top=True
+                keep_on_top=True,
             )
         except Exception as e:
             log.error("Failed to show VLC error popup: %s", e)
@@ -160,22 +161,21 @@ async def main() -> None:
     # Create playback callback wrappers
     async def play(media, fullscreen=False):
         """Play media wrapper."""
-        await play_media(media, fullscreen, Player, window,
-                        window["_canvas_video_"], background_mgr.clear_background)
-    
+        await play_media(media, fullscreen, Player, window, window["_canvas_video_"], background_mgr.clear_background)
+
     def stop():
         """Stop playback wrapper."""
         stop_playback(Player, lambda: background_mgr.show_background(Player))
 
     # Main event loop
     log.info("Entering main event loop")
-    
+
     while True:
         # Read events from all windows
         active_window, event, values = sg.read_all_windows(timeout=100)
 
         # Normalize menu event text (strip '&' accelerators)
-        ev = event.replace('&', '') if isinstance(event, str) else event
+        ev = event.replace("&", "") if isinstance(event, str) else event
 
         # Start EPG loading in background after first event loop
         if not epg_loading_started:
@@ -188,31 +188,31 @@ async def main() -> None:
 
         if ev == sg.TIMEOUT_KEY:
             continue
-        
+
         # Track channel table clicks
         if isinstance(event, tuple):
             event_handler.handle_channel_table_click(event)
             channel_handler.last_channel_idx = event_handler.last_channel_idx
-        
+
         # Handle exit from fullscreen
         if ev == "__EXIT_FULLSCREEN__":
             log.debug("Exiting fullscreen")
-            Player.exit_fullscreen_window(window, window["_canvas_video_"],
-                                         lambda: background_mgr.show_background(Player))
+            Player.exit_fullscreen_window(
+                window, window["_canvas_video_"], lambda: background_mgr.show_background(Player)
+            )
             continue
-        
+
         # Handle search filters
         if ev == "__KEY_FILTER__":
             try:
                 field, text = values[event]
-                search_handler.handle_search_event(field, text, Data,
-                                                   window_manager.category_window,
-                                                   window_manager.channel_window,
-                                                   Player)
+                search_handler.handle_search_event(
+                    field, text, Data, window_manager.category_window, window_manager.channel_window, Player
+                )
             except Exception as e:
                 log.error("Key filter handling failed: %s", e, exc_info=True)
             continue
-        
+
         # Handle window show events
         if ev == "Show Categories" and not window_manager.category_visible:
             log.info("Showing category window")
@@ -220,22 +220,22 @@ async def main() -> None:
             window_manager.bind_search_entries()
             window_manager.dock_panels()
             continue
-        
+
         if ev == "Show Channels" and not window_manager.channel_visible:
             log.info("Showing channel window")
             window_manager.create_channel_window(ui_settings)
             window_manager.bind_search_entries()
             window_manager.dock_panels()
             continue
-        
+
         if ev == "Restore Layout":
             log.info("Restoring layout")
             window_manager.restore_layout(ui_settings)
             continue
-        
+
         # Handle window close events
         if ev in (sg.WIN_CLOSED, "Exit"):
-            log.info("Exit triggered from window=%s", getattr(active_window, 'Title', 'main'))
+            log.info("Exit triggered from window=%s", getattr(active_window, "Title", "main"))
             if active_window == window:
                 break
             elif active_window == window_manager.category_window:
@@ -244,7 +244,7 @@ async def main() -> None:
             elif active_window == window_manager.channel_window:
                 window_manager.close_channel_window()
                 continue
-        
+
         # Menu events
         if ev == "About":
             event_handler.handle_about()
@@ -278,16 +278,15 @@ async def main() -> None:
         elif ev == "Stop":
             stop()
         elif ev in ["_iptv_content_", "Record", "Full Screen", "Play in VLC"]:
-            await channel_handler.handle_channel_playback(
-                ev, values, window_manager.channel_window, Player, play
-            )
-        
+            await channel_handler.handle_channel_playback(ev, values, window_manager.channel_window, Player, play)
+
         # Handle keyboard shortcuts
         if event is not None and event is not sg.TIMEOUT_KEY:
             if isinstance(event, str) and len(event) == 1 and ord(event) == 27:  # ESC
                 if Player.is_fullscreen:
-                    Player.exit_fullscreen_window(window, window["_canvas_video_"],
-                                                 lambda: background_mgr.show_background(Player))
+                    Player.exit_fullscreen_window(
+                        window, window["_canvas_video_"], lambda: background_mgr.show_background(Player)
+                    )
                     log.debug("ESC pressed - exited fullscreen")
                 else:
                     stop()

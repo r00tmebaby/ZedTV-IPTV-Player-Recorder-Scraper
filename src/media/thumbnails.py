@@ -4,8 +4,8 @@ Downloads and caches thumbnails from stream metadata
 """
 
 import hashlib
-from pathlib import Path
 from io import BytesIO
+from pathlib import Path
 from typing import Optional
 
 import httpx
@@ -76,4 +76,3 @@ def get_cache_size() -> int:
         return sum(f.stat().st_size for f in THUMBNAIL_CACHE.glob("*.png"))
     except Exception:
         return 0
-

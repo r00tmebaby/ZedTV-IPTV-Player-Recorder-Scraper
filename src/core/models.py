@@ -5,13 +5,15 @@ at import time; populate after startup.
 """
 
 import os
-from typing import List, Optional
-from pydantic import BaseModel
 from enum import Enum
+from typing import List, Optional
+
+from pydantic import BaseModel
 
 
 class IPTVFileType(Enum):
     """Enumerated playlist file types used in file dialogs."""
+
     M3U = ("M3U files", "*.m3u")
     M3U8 = ("M3U8 files", "*.m3u8")
     TXT = ("Text files", "*.txt")
@@ -30,6 +32,7 @@ class IpModel(BaseModel):
 
     Provides a printable summary via get_results property.
     """
+
     ip: str
     city: str
     region: str
@@ -59,6 +62,7 @@ class Data:
     Attributes are mutated by UI/event handlers; prefer adding explicit
     fields here instead of scattering globals.
     """
+
     categories: List[str] = []
     categories_master: List[str] = []  # full list as loaded, for filtering
     xtream_account: Optional[dict] = None

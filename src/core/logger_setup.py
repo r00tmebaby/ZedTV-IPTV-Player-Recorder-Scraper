@@ -1,6 +1,7 @@
 """
 Application logging initialization with rotation and retention.
 """
+
 from __future__ import annotations
 
 import logging
@@ -9,9 +10,10 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Optional
 
-from __version__ import __version__, APP_NAME
+from __version__ import APP_NAME, __version__
+
 from .config import DATA_FOLDER
-from .logging_settings import LoggingSettings, LoggingConfig
+from .logging_settings import LoggingConfig, LoggingSettings
 
 LOGS_DIR = Path(DATA_FOLDER) / "logs"
 LOG_FILE_BASENAME = "app.log"  # will rotate to app.log.1, app.log.2 ...
@@ -62,7 +64,13 @@ def init_logging(settings: Optional[LoggingConfig] = None) -> logging.Logger:
 
     # Write banner
     root.info("\n=== %s v%s started ===", APP_NAME, __version__)
-    root.info("Logging level=%s, file=%s, maxMB=%s, backups=%s", logging.getLevelName(level), str(logfile), ls.max_file_size_mb, backup_count)
+    root.info(
+        "Logging level=%s, file=%s, maxMB=%s, backups=%s",
+        logging.getLevelName(level),
+        str(logfile),
+        ls.max_file_size_mb,
+        backup_count,
+    )
 
     # Run retention cleanup
     try:

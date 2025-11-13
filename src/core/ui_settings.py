@@ -5,7 +5,7 @@ Manages theme and font settings for PySimpleGUI
 
 import json
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 
 from ui import PySimpleGUI as sg
 
@@ -128,7 +128,7 @@ class UISettings:
         """Load settings from file or return defaults."""
         if UI_SETTINGS_FILE.exists():
             try:
-                with open(UI_SETTINGS_FILE, 'r', encoding='utf-8') as f:
+                with open(UI_SETTINGS_FILE, "r", encoding="utf-8") as f:
                     saved = json.load(f)
                 # Merge with defaults to add any new settings
                 settings = DEFAULT_UI_SETTINGS.copy()
@@ -142,7 +142,7 @@ class UISettings:
         """Save current settings to file."""
         try:
             Path(DATA_FOLDER).mkdir(parents=True, exist_ok=True)
-            with open(UI_SETTINGS_FILE, 'w', encoding='utf-8') as f:
+            with open(UI_SETTINGS_FILE, "w", encoding="utf-8") as f:
                 json.dump(self.settings, f, indent=2)
         except Exception as e:
             print(f"Failed to save UI settings: {e}")
@@ -185,4 +185,3 @@ class UISettings:
             "button": self.get_font("button"),
             "table": self.get_font("table"),
         }
-

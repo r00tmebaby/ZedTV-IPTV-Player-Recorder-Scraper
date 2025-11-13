@@ -5,8 +5,8 @@ This is the single source of truth for version numbers.
 Update this file when bumping version numbers.
 """
 
-__version__ = "1.4.0"
-__version_info__ = tuple(int(x) for x in __version__.split('.'))
+__version__ = "2.0.0"
+__version_info__ = tuple(int(x) for x in __version__.split("."))
 
 # Application metadata
 APP_NAME = "ZedTV IPTV Player"
@@ -19,12 +19,11 @@ FULL_VERSION_STRING = f"{APP_NAME} {VERSION_STRING}"
 
 # For compatibility with setup tools and other tooling
 __all__ = [
-    '__version__',
-    '__version_info__',
-    'APP_NAME',
-    'APP_AUTHOR',
-    'APP_YEAR',
-    'VERSION_STRING',
-    'FULL_VERSION_STRING',
+    "__version__",
+    "__version_info__",
+    "APP_NAME",
+    "APP_AUTHOR",
+    "APP_YEAR",
+    "VERSION_STRING",
+    "FULL_VERSION_STRING",
 ]
-

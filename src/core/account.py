@@ -13,15 +13,16 @@ import json
 from datetime import datetime, timezone
 from typing import Optional
 
-from .config import ACCOUNTS_FILE, AccountChoice, ICON
+from ui import PySimpleGUI as sg
+
 from .app import (
     _epoch_to_str,
+    _fmt_formats,
+    _fmt_yesno,
     _normalize_base,
     _xtream_api,
-    _fmt_yesno,
-    _fmt_formats,
 )
-from ui import PySimpleGUI as sg
+from .config import ACCOUNTS_FILE, ICON, AccountChoice
 
 
 def _format_account_info(info: dict) -> str:
@@ -37,20 +38,20 @@ def _format_account_info(info: dict) -> str:
         f"is_trial: {ui.get('is_trial','')}\n"
         f"active_cons: {ui.get('active_cons','')}\n"
         f"max_connections: {ui.get('max_connections','')}\n"
-        f"created_at: {ui.get('created_at','')}  "
+        f"created_at: {ui.get('created_at', '')}  "
         f"({_epoch_to_str(ui.get('created_at'))})\n"
-        f"exp_date: {ui.get('exp_date','')}  "
+        f"exp_date: {ui.get('exp_date', '')}  "
         f"({_epoch_to_str(ui.get('exp_date'))})\n"
         f"allowed_output_formats: {allowed}\n\n"
         "=== SERVER INFO ===\n"
-        f"url: {si.get('url','')}\n"
-        f"server_protocol: {si.get('server_protocol','')}\n"
-        f"port: {si.get('port','')}\n"
-        f"https_port: {si.get('https_port','')}\n"
-        f"rtmp_port: {si.get('rtmp_port','')}\n"
-        f"timezone: {si.get('timezone','')}\n"
-        f"time_now: {si.get('time_now','')}\n"
-        f"timestamp_now: {si.get('timestamp_now','')}\n"
+        f"url: {si.get('url', '')}\n"
+        f"server_protocol: {si.get('server_protocol', '')}\n"
+        f"port: {si.get('port', '')}\n"
+        f"https_port: {si.get('https_port', '')}\n"
+        f"rtmp_port: {si.get('rtmp_port', '')}\n"
+        f"timezone: {si.get('timezone', '')}\n"
+        f"time_now: {si.get('time_now', '')}\n"
+        f"timestamp_now: {si.get('timestamp_now', '')}\n"
     )
 
 
@@ -87,6 +88,7 @@ def _choose_account_window() -> Optional[AccountChoice]:
         return rows
 
     layout = [
+        [sg.Text("Saved Xtream Accounts", font=("Arial", 14, "bold"), pad=((5, 5), (10, 15)))],
         [
             sg.Table(
                 values=_rows_from_saved(),
@@ -99,14 +101,16 @@ def _choose_account_window() -> Optional[AccountChoice]:
                 expand_y=True,
                 select_mode=sg.TABLE_SELECT_MODE_BROWSE,
                 num_rows=12,
+                pad=((5, 5), (5, 15))
             )
         ],
         [
-            sg.Button("Use"),
-            sg.Button("Details"),
-            sg.Button("Delete"),
-            sg.Button("Refresh Snapshot"),  # <- manual re-pull if you want
-            sg.Button("Close"),
+            sg.Button("Use", size=(12, 1), bind_return_key=True, pad=((5, 5), (5, 10))),
+            sg.Button("Details", size=(12, 1), pad=((5, 5), (5, 10))),
+            sg.Button("Refresh Snapshot", size=(15, 1), pad=((5, 5), (5, 10))),
+            sg.Push(),
+            sg.Button("Delete", size=(10, 1), button_color=("white", "red"), pad=((5, 5), (5, 10))),
+            sg.Button("Close", size=(10, 1), pad=((5, 5), (5, 10))),
         ],
     ]
     w = sg.Window(
@@ -171,7 +175,7 @@ def _snapshot_to_row(name: str, acc: dict) -> list[str]:
     snap = acc.get("snapshot") or {}
     ui = snap.get("user_info") or {}
     status = ui.get("status", "-")
-    conns = f"{ui.get('active_cons','0')}/{ui.get('max_connections','-')}"
+    conns = f"{ui.get('active_cons', '0')}/{ui.get('max_connections', '-')}"
     exp = _epoch_to_str(ui.get("exp_date"))
     trial = _fmt_yesno(ui.get("is_trial"))
     fmts = _fmt_formats(ui)
@@ -223,39 +227,57 @@ def _accounts_save_one(name: str, acc: dict) -> None:
 def _add_account_window():
     """Modal window to add an Xtream account, testing connectivity before saving."""
     layout = [
-        [sg.Text("Name", size=(20, 1)), sg.Input(key="_name_", size=(30, 1))],
+        [sg.Text("Add Xtream Account", font=("Arial", 14, "bold"), pad=((0, 0), (10, 15)))],
+        [sg.HorizontalSeparator()],
+
+        [sg.Text("Account Configuration", font=("Arial", 11, "bold"), pad=((0, 0), (10, 10)))],
         [
-            sg.Text("Host (e.g. liken.me)", size=(20, 1)),
-            sg.Input(key="_host_", size=(30, 1)),
+            sg.Text("Name:", size=(18, 1), pad=((10, 5), (5, 5))),
+            sg.Input(key="_name_", size=(35, 1)),
+        ],
+        [sg.Text("Friendly name to identify this account", font=("Arial", 9), text_color="gray", pad=((10, 10), (0, 10)))],
+
+        [sg.HorizontalSeparator(pad=((0, 0), (5, 5)))],
+
+        [sg.Text("Server Settings", font=("Arial", 11, "bold"), pad=((0, 0), (10, 10)))],
+        [
+            sg.Text("Host:", size=(18, 1), pad=((10, 5), (5, 5))),
+            sg.Input(key="_host_", size=(35, 1)),
+        ],
+        [sg.Text("e.g. liken.me or 192.168.1.100", font=("Arial", 9), text_color="gray", pad=((10, 10), (0, 10)))],
+
+        [
+            sg.Text("Port:", size=(18, 1), pad=((10, 5), (5, 5))),
+            sg.Input(key="_port_", size=(12, 1), default_text="80"),
+            sg.Checkbox("Use HTTPS", key="_https_", pad=((15, 5), (5, 5))),
+        ],
+
+        [sg.HorizontalSeparator(pad=((0, 0), (10, 10)))],
+
+        [sg.Text("Credentials", font=("Arial", 11, "bold"), pad=((0, 0), (10, 10)))],
+        [
+            sg.Text("Username:", size=(18, 1), pad=((10, 5), (5, 5))),
+            sg.Input(key="_user_", size=(35, 1)),
         ],
         [
-            sg.Text("Port", size=(20, 1)),
-            sg.Input(key="_port_", size=(10, 1), default_text="80"),
-            sg.Checkbox("Use HTTPS", key="_https_"),
-        ],
-        [
-            sg.Text("Username", size=(20, 1)),
-            sg.Input(key="_user_", size=(30, 1)),
-        ],
-        [
-            sg.Text("Password", size=(20, 1)),
+            sg.Text("Password:", size=(18, 1), pad=((10, 5), (5, 5))),
             sg.Input(
                 key="_pass_",
                 password_char="*",
-                size=(30, 1),
+                size=(35, 1),
             ),
         ],
+
+        [sg.HorizontalSeparator(pad=((0, 0), (15, 15)))],
+
         [
-            sg.Col(
-                [[sg.Button("Test & Save"), sg.Button("Cancel")]],
-                justification="right",
-                pad=(0, 10),
-            )
+            sg.Push(),
+            sg.Button("Cancel", size=(10, 1), pad=((5, 5), (5, 10))),
+            sg.Button("Test & Save", size=(12, 1), bind_return_key=True, button_color=("white", "green"), pad=((5, 5), (5, 10))),
         ],
+        [sg.Text("Account will be tested before saving", font=("Arial", 9, "italic"), text_color="gray", pad=((10, 10), (0, 10)))],
     ]
-    w = sg.Window(
-        "Add Xtream Account", layout, modal=True, keep_on_top=True, icon=ICON
-    )
+    w = sg.Window("Add Xtream Account", layout, modal=True, keep_on_top=True, icon=ICON)
     while True:
         e, v = w.read()
         if e in (sg.WIN_CLOSED, "Cancel"):
@@ -277,9 +299,7 @@ def _add_account_window():
                         "password": v["_pass_"],
                         "snapshot": {
                             **info,
-                            "_fetched_at": datetime.now(
-                                timezone.utc
-                            ).isoformat(),
+                            "_fetched_at": datetime.now(timezone.utc).isoformat(),
                         },
                     }
                     _accounts_save_one(name, acc)
@@ -296,8 +316,6 @@ def _add_account_window():
                     return {"name": name, **acc}
 
                 else:
-                    sg.popup_error(
-                        "Auth failed (not Active?).", keep_on_top=True
-                    )
+                    sg.popup_error("Auth failed (not Active?).", keep_on_top=True)
             except Exception as ex:
                 sg.popup_error(f"Error: {ex}", keep_on_top=True)

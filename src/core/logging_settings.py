@@ -2,12 +2,13 @@
 Logging settings manager for ZedTV IPTV Player.
 Stores and loads logging configuration used by the application.
 """
+
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 
 from .config import DATA_FOLDER
 
@@ -66,4 +67,3 @@ class LoggingSettings:
                 changed = True
         if changed:
             self.save_settings()
-

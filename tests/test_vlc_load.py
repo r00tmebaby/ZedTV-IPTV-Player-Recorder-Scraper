@@ -1,27 +1,37 @@
-"""Quick test to verify VLC loads correctly from IDE"""
+"""Quick test to verify VLC loads correctly from IDE
+
+Converted to a unittest that is skipped when media.player cannot be imported so
+missing native libraries won't break test discovery.
+"""
+
 import sys
-sys.path.insert(0, 'src')
+from pathlib import Path
+import unittest
+import logging
 
-from media import player
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-print("Testing VLC library loading...")
-print(f"sys.frozen: {getattr(sys, 'frozen', False)}")
-print(f"sys._MEIPASS: {getattr(sys, '_MEIPASS', 'N/A')}")
+logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
 
-dll, plugin_path = player.find_lib()
-print(f"\nResult:")
-print(f"  DLL: {dll}")
-print(f"  Plugin path: {plugin_path}")
+MEDIA_IMPORT_ERROR = None
+player = None
+try:
+    from media import player as _player
+    player = _player
+except Exception as e:
+    MEDIA_IMPORT_ERROR = str(e)
+    logging.debug("media.player import failed: %s", MEDIA_IMPORT_ERROR)
 
-if dll:
-    print("\n✓ VLC loaded successfully!")
-    try:
+
+class TestVLCLoad(unittest.TestCase):
+    @unittest.skipIf(MEDIA_IMPORT_ERROR is not None, "media.player not importable: %s" % MEDIA_IMPORT_ERROR)
+    def test_load_and_create(self):
+        logging.info("Testing VLC library loading via player.find_lib()")
+        dll, plugin_path = player.find_lib()
+        self.assertTrue(bool(dll), "DLL not found")
+        self.assertIsNotNone(plugin_path)
+        # Try creating an instance and media player
         inst = player.Instance()
-        print(f"✓ Instance created: {inst}")
+        self.assertIsNotNone(inst)
         mp = inst.media_player_new()
-        print(f"✓ Media player created: {mp}")
-    except Exception as e:
-        print(f"✗ Instance/player creation failed: {e}")
-else:
-    print("\n✗ VLC DLL not found")
-
+        self.assertIsNotNone(mp)

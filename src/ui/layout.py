@@ -1,6 +1,7 @@
-from . import PySimpleGUI as sg
-from core.models import Data
 from core.app import _rows
+from core.models import Data
+
+from . import PySimpleGUI as sg
 
 """UI layout builders (category panel, channel panel, main window).
 Separated from main logic to keep window construction modular.
@@ -10,8 +11,9 @@ menu_def = [
     ["&File", ["&Open", "&Custom List", "&Exit"]],
     ["&Xtream", ["&Add Account", "&Accounts...", "&Reload from Current"]],
     ["&View", ["Show &Categories", "Show C&hannels", "&Restore Layout"]],
-    ["&Settings", ["&UI Settings", "&VLC Settings", "&IP Info", "-", "&Logging Settings", "Open &Logs Folder"]],
-    ["&Help", ["&How to Use", "View &Current Log", "&About"]],
+    ["&Settings", ["&UI Settings", "&VLC Settings", "&Logging Settings", "&IP Info"]],
+    ["&Logs", ["&View Current Log", "Open &Logs Folder"]],
+    ["&Help", ["&How to Use", "&About"]],
 ]
 
 
@@ -72,10 +74,10 @@ def build_layout(ui_settings=None):
         table_font = ("Arial", 10)
 
     # Always use horizontal layout
-    orientation = "horizontal"
+    # orientation = "horizontal"
 
     # List sizes for tables
-    list_size = (200, 300)  # (rows, height in pixels)
+    # list_size = (200, 300)  # (rows, height in pixels)
 
     # Video canvas - fixed size 857x552 (not resizable)
     video_canvas = sg.Canvas(
@@ -153,9 +155,7 @@ def build_layout(ui_settings=None):
                     [sg.Menu(menu_def, pad=(200, 1))],
                     [
                         sg.Col(
-                            [
-                                [video_canvas]
-                            ],
+                            [[video_canvas]],
                             expand_x=True,
                             expand_y=True,
                         ),

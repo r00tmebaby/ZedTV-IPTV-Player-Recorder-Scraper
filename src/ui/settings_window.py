@@ -2,9 +2,9 @@
 Settings Window for VLC configuration
 """
 
-from ui import PySimpleGUI as sg
-from core.vlc_settings import VLCSettings, SETTING_DESCRIPTIONS, SETTING_OPTIONS
 from core.config import ICON
+from core.vlc_settings import DEFAULT_VLC_SETTINGS, SETTING_DESCRIPTIONS, SETTING_OPTIONS, VLCSettings
+from ui import PySimpleGUI as sg
 
 
 def _show_vlc_settings_window(current_settings: VLCSettings) -> bool:
@@ -13,15 +13,11 @@ def _show_vlc_settings_window(current_settings: VLCSettings) -> bool:
     Returns True if settings were changed and VLC needs to be restarted.
     """
 
-    # Build the layout
-    layout = [
-        [sg.Text("VLC Player Settings", font=("Arial", 14, "bold"))],
-        [sg.HorizontalSeparator()],
-
-        # Network & Streaming
-        [sg.Text("Network & Streaming", font=("Arial", 11, "bold"))],
+    # Tab 1: Network Settings
+    network_tab = [
+        [sg.Text("Buffering & Caching", font=("Arial", 13, "bold"), pad=((5, 5), (10, 10)))],
         [
-            sg.Text("Network Buffer (ms):", size=(25, 1)),
+            sg.Text("Network Buffer (ms):", size=(25, 1), pad=((10, 5), (5, 5))),
             sg.Slider(
                 range=(100, 5000),
                 default_value=current_settings.settings["network_caching"],
@@ -30,11 +26,18 @@ def _show_vlc_settings_window(current_settings: VLCSettings) -> bool:
                 key="_network_caching_",
                 enable_events=True,
             ),
-            sg.Text(str(current_settings.settings["network_caching"]), key="_network_caching_display_", size=(6, 1)),
+            sg.Text(
+                str(current_settings.settings["network_caching"]),
+                key="_network_caching_display_",
+                size=(6, 1),
+                justification="right",
+                pad=((5, 10), (5, 5))
+            ),
         ],
-        [sg.Text(SETTING_DESCRIPTIONS["network_caching"], font=("Arial", 8), text_color="gray")],
+        [sg.Text(SETTING_DESCRIPTIONS["network_caching"], font=("Arial", 9), text_color="gray", pad=((10, 10), (0, 10)))],
+
         [
-            sg.Text("Live Stream Buffer (ms):", size=(25, 1)),
+            sg.Text("Live Stream Buffer (ms):", size=(25, 1), pad=((10, 5), (5, 5))),
             sg.Slider(
                 range=(50, 2000),
                 default_value=current_settings.settings["live_caching"],
@@ -43,43 +46,73 @@ def _show_vlc_settings_window(current_settings: VLCSettings) -> bool:
                 key="_live_caching_",
                 enable_events=True,
             ),
-            sg.Text(str(current_settings.settings["live_caching"]), key="_live_caching_display_", size=(6, 1)),
+            sg.Text(
+                str(current_settings.settings["live_caching"]),
+                key="_live_caching_display_",
+                size=(6, 1),
+                justification="right",
+                pad=((5, 10), (5, 5))
+            ),
         ],
-        [sg.Text(SETTING_DESCRIPTIONS["live_caching"], font=("Arial", 8), text_color="gray")],
+        [sg.Text(SETTING_DESCRIPTIONS["live_caching"], font=("Arial", 9), text_color="gray", pad=((10, 10), (0, 20)))],
+    ]
 
-        [sg.HorizontalSeparator()],
-
-        # Hardware Acceleration
-        [sg.Text("Hardware Acceleration", font=("Arial", 11, "bold"))],
+    # Tab 2: Video & Audio Settings
+    video_audio_tab = [
+        [sg.Text("Video Settings", font=("Arial", 13, "bold"), pad=((5, 5), (10, 10)))],
         [
-            sg.Text("Hardware Decoding:", size=(25, 1)),
+            sg.Text("Hardware Decoding:", size=(25, 1), pad=((10, 5), (5, 5))),
             sg.Combo(
                 SETTING_OPTIONS["hw_decoding"],
                 default_value=current_settings.settings["hw_decoding"],
                 key="_hw_decoding_",
                 readonly=True,
-                size=(20, 1),
+                size=(22, 1),
             ),
         ],
-        [sg.Text(SETTING_DESCRIPTIONS["hw_decoding"], font=("Arial", 8), text_color="gray")],
+        [sg.Text(SETTING_DESCRIPTIONS["hw_decoding"], font=("Arial", 9), text_color="gray", pad=((10, 10), (0, 10)))],
 
-        [sg.HorizontalSeparator()],
-
-        # Audio
-        [sg.Text("Audio", font=("Arial", 11, "bold"))],
         [
-            sg.Text("Audio Output:", size=(25, 1)),
+            sg.Text("Video Output:", size=(25, 1), pad=((10, 5), (5, 5))),
+            sg.Combo(
+                SETTING_OPTIONS["video_output"],
+                default_value=current_settings.settings["video_output"],
+                key="_video_output_",
+                readonly=True,
+                size=(22, 1),
+            ),
+        ],
+        [sg.Text(SETTING_DESCRIPTIONS["video_output"], font=("Arial", 9), text_color="gray", pad=((10, 10), (0, 10)))],
+
+        [
+            sg.Text("Deinterlace:", size=(25, 1), pad=((10, 5), (5, 5))),
+            sg.Combo(
+                SETTING_OPTIONS["deinterlace"],
+                default_value=current_settings.settings["deinterlace"],
+                key="_deinterlace_",
+                readonly=True,
+                size=(22, 1),
+            ),
+        ],
+        [sg.Text(SETTING_DESCRIPTIONS["deinterlace"], font=("Arial", 9), text_color="gray", pad=((10, 10), (0, 20)))],
+
+        [sg.HorizontalSeparator(pad=((0, 0), (10, 10)))],
+
+        [sg.Text("Audio Settings", font=("Arial", 13, "bold"), pad=((5, 5), (10, 10)))],
+        [
+            sg.Text("Audio Output:", size=(25, 1), pad=((10, 5), (5, 5))),
             sg.Combo(
                 SETTING_OPTIONS["audio_output"],
                 default_value=current_settings.settings["audio_output"],
                 key="_audio_output_",
                 readonly=True,
-                size=(20, 1),
+                size=(22, 1),
             ),
         ],
-        [sg.Text(SETTING_DESCRIPTIONS["audio_output"], font=("Arial", 8), text_color="gray")],
+        [sg.Text(SETTING_DESCRIPTIONS["audio_output"], font=("Arial", 9), text_color="gray", pad=((10, 10), (0, 10)))],
+
         [
-            sg.Text("Default Volume (%):", size=(25, 1)),
+            sg.Text("Default Volume (%):", size=(25, 1), pad=((10, 5), (5, 5))),
             sg.Slider(
                 range=(0, 200),
                 default_value=current_settings.settings["audio_volume"],
@@ -88,72 +121,82 @@ def _show_vlc_settings_window(current_settings: VLCSettings) -> bool:
                 key="_audio_volume_",
                 enable_events=True,
             ),
-            sg.Text(str(current_settings.settings["audio_volume"]), key="_audio_volume_display_", size=(6, 1)),
-        ],
-
-        [sg.HorizontalSeparator()],
-
-        # Video
-        [sg.Text("Video", font=("Arial", 11, "bold"))],
-        [
-            sg.Text("Video Output:", size=(25, 1)),
-            sg.Combo(
-                SETTING_OPTIONS["video_output"],
-                default_value=current_settings.settings["video_output"],
-                key="_video_output_",
-                readonly=True,
-                size=(20, 1),
+            sg.Text(
+                str(current_settings.settings["audio_volume"]),
+                key="_audio_volume_display_",
+                size=(6, 1),
+                justification="right",
+                pad=((5, 10), (5, 5))
             ),
         ],
-        [sg.Text(SETTING_DESCRIPTIONS["video_output"], font=("Arial", 8), text_color="gray")],
-        [
-            sg.Text("Deinterlace:", size=(25, 1)),
-            sg.Combo(
-                SETTING_OPTIONS["deinterlace"],
-                default_value=current_settings.settings["deinterlace"],
-                key="_deinterlace_",
-                readonly=True,
-                size=(20, 1),
-            ),
-        ],
-        [sg.Text(SETTING_DESCRIPTIONS["deinterlace"], font=("Arial", 8), text_color="gray")],
+        [sg.Text("Volume can be set above 100% for quiet streams", font=("Arial", 9), text_color="gray", pad=((10, 10), (0, 20)))],
+    ]
 
-        [sg.HorizontalSeparator()],
+    # Tab 3: Advanced Settings
+    advanced_tab = [
+        [sg.Text("Performance Options", font=("Arial", 13, "bold"), pad=((5, 5), (10, 10)))],
+        [sg.Text("These settings can improve playback on slower systems", font=("Arial", 9), text_color="gray", pad=((10, 10), (0, 15)))],
 
-        # Advanced
-        [sg.Text("Advanced", font=("Arial", 11, "bold"))],
         [
             sg.Checkbox(
                 "Skip frames if system is too slow",
                 default=current_settings.settings["skip_frames"],
                 key="_skip_frames_",
+                pad=((10, 10), (5, 5))
             ),
         ],
+        [sg.Text("Prevents audio/video desync on slow systems", font=("Arial", 9), text_color="gray", pad=((25, 10), (0, 10)))],
+
         [
             sg.Checkbox(
                 "Drop frames that arrive too late",
                 default=current_settings.settings["drop_late_frames"],
                 key="_drop_late_frames_",
+                pad=((10, 10), (5, 5))
             ),
         ],
+        [sg.Text("Improves playback smoothness for network streams", font=("Arial", 9), text_color="gray", pad=((25, 10), (0, 10)))],
+
+        [sg.HorizontalSeparator(pad=((0, 0), (15, 15)))],
+
+        [sg.Text("Maintenance", font=("Arial", 13, "bold"), pad=((5, 5), (10, 10)))],
         [
             sg.Checkbox(
                 "Reset plugin cache on startup",
                 default=current_settings.settings["reset_plugins_cache"],
                 key="_reset_plugins_cache_",
+                pad=((10, 10), (5, 5))
             ),
         ],
+        [sg.Text("Clear VLC plugin cache to fix potential issues", font=("Arial", 9), text_color="gray", pad=((25, 10), (0, 20)))],
+    ]
 
-        [sg.HorizontalSeparator()],
+    # Build tabbed layout with improved spacing and organization
+    layout = [
+        [sg.Text("VLC Player Settings", font=("Arial", 16, "bold"), pad=((10, 10), (10, 10)))],
+        [sg.TabGroup(
+            [
+                [
+                    sg.Tab("Network", network_tab, key="_tab_network_", font=("Arial", 10)),
+                    sg.Tab("Video & Audio", video_audio_tab, key="_tab_video_audio_", font=("Arial", 10)),
+                    sg.Tab("Advanced", advanced_tab, key="_tab_advanced_", font=("Arial", 10)),
+                ]
+            ],
+            pad=((5, 5), (5, 15)),
+            expand_x=True,
+            expand_y=True,
+        )],
 
-        # Buttons
+        [sg.HorizontalSeparator(pad=((0, 0), (5, 10)))],
+
+        # Action Buttons - Right aligned with proper spacing
         [
-            sg.Button("Restore Defaults", key="_restore_defaults_"),
+            sg.Button("Restore Defaults", key="_restore_defaults_", size=(15, 1), pad=((10, 5), (5, 10))),
             sg.Push(),
-            sg.Button("Cancel", key="_cancel_"),
-            sg.Button("Save & Apply", key="_save_", button_color=("white", "green")),
+            sg.Button("Cancel", key="_cancel_", size=(10, 1), pad=((5, 5), (5, 10))),
+            sg.Button("Save & Apply", key="_save_", button_color=("white", "green"), size=(12, 1), pad=((5, 10), (5, 10))),
         ],
-        [sg.Text("Note: Changes will be applied on next playback", font=("Arial", 9), text_color="orange")],
+        [sg.Text("Note: Changes will be applied on next playback", font=("Arial", 9, "italic"), text_color="orange", pad=((10, 10), (0, 10)))],
     ]
 
     window = sg.Window(
@@ -182,7 +225,6 @@ def _show_vlc_settings_window(current_settings: VLCSettings) -> bool:
 
         # Restore defaults
         elif event == "_restore_defaults_":
-            from vlc_settings import DEFAULT_VLC_SETTINGS
 
             window["_network_caching_"].update(DEFAULT_VLC_SETTINGS["network_caching"])
             window["_network_caching_display_"].update(str(DEFAULT_VLC_SETTINGS["network_caching"]))
@@ -226,4 +268,3 @@ def _show_vlc_settings_window(current_settings: VLCSettings) -> bool:
 
     window.close()
     return settings_changed
-

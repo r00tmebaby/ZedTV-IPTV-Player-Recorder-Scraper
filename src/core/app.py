@@ -1,21 +1,17 @@
+import logging
 import os
 import re
 from datetime import datetime, timezone
 from pathlib import Path
-from sys import platform
 from typing import List
-from urllib.parse import urlparse
 
-import httpx
-import ipaddress
-
-from .config import HEADERS, RECORDS_FOLDER
-from ui import PySimpleGUI as sg
-from .models import Data
-from parsing.m3u_parser import parse_m3u  # new import
+from parsing.m3u_parser import parse_m3u
 from services.xtream import _build_m3u_from_xtream, _normalize_base, _xtream_api  # re-exported for settings/account
-from utils.video_utils import build_record_sout as _build_record_sout, launch_vlc_external as _launch_vlc_external, _safe_filename
-import logging
+from utils.video_utils import _safe_filename
+from utils.video_utils import build_record_sout as _build_record_sout
+
+
+from .models import Data
 
 logger = logging.getLogger("zedtv.app")
 
@@ -33,9 +29,7 @@ def _epoch_to_str(s: str | int | None) -> str:
         # Reject negative timestamps
         if epoch < 0:
             return str(s)
-        return datetime.fromtimestamp(epoch, tz=timezone.utc).strftime(
-            "%Y-%m-%d %H:%M:%S UTC"
-        )
+        return datetime.fromtimestamp(epoch, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     except Exception:
         return str(s)
 
@@ -98,7 +92,7 @@ def get_selected() -> List[List[str]]:
 
     logger.debug("get_selected produced %d rows", len(rows))
     Data.rows_cache = rows
-    Data.search_titles_lower = [ (r[0] or '').lower() for r in rows ]
+    Data.search_titles_lower = [(r[0] or "").lower() for r in rows]
     return rows
 
 
@@ -188,131 +182,8 @@ def _fmt_formats(ui: dict, limit: int = 4) -> str:
     fmt = ui.get("allowed_output_formats") or []
     if not fmt:
         return "-"
-    return ",".join(fmt[:limit]) + (
-        f" +{len(fmt)-limit}" if len(fmt) > limit else ""
-    )
+    return ",".join(fmt[:limit]) + (f" +{len(fmt)-limit}" if len(fmt) > limit else "")
 
 
-
-def _build_record_sout(title: str) -> str:
-    logger.debug("Building record sout for title='%s'", title)
-    """Build VLC sout option string for recording while displaying.
-    Returns the option string (with the ':sout=' prefix for VLC).
-    """
-    ts = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    fname = f"{ts} - {_safe_filename(title)}.mp4"
-
-    # Use absolute path and convert to string (on Windows, use backslashes)
-    dst_path = Path(RECORDS_FOLDER).resolve() / fname
-    dst = str(dst_path)  # Use native path format
-
-    # Escape backslashes for VLC (Windows needs double backslashes)
-    if platform.startswith("win"):
-        dst = dst.replace("\\", "\\\\")
-
-    # Build the sout string: duplicate to both file and display
-    # Note: The ':sout=' prefix is required for VLC options
-    return (
-        f":sout=#duplicate{{"
-        f"dst=std{{access=file,mux=mp4,dst='{dst}'}},"
-        f"dst=display"
-        f"}}"
-    )
-
-
-def _normalize_base(
-    host_or_url: str, port: int | None = None, prefer_https: bool = False
-) -> str:
-    logger.debug("_normalize_base host_or_url=%s port=%s prefer_https=%s", host_or_url, port, prefer_https)
-    """Return base like http(s)://host:port suitable for Xtream paths.
-
-    Handles hostnames, IPv4, IPv6 (with or without brackets), and full URLs.
-    """
-    raw = (host_or_url or "").strip()
-    if not raw:
-        # Fallback safe default
-        scheme = "https" if prefer_https else "http"
-        return f"{scheme}://localhost:{443 if scheme=='https' else 80}"
-
-    has_scheme = re.match(r"^https?://", raw, re.I) is not None
-
-    # If the input already has a scheme, rely on urlparse but carefully format IPv6
-    if has_scheme:
-        u = urlparse(raw)
-        scheme = "https" if (prefer_https or u.scheme == "https") else "http"
-        host = u.hostname or "localhost"
-        # Bracket IPv6 literal for output if needed
-        if host and ":" in host and not host.startswith("["):
-            try:
-                if ipaddress.ip_address(host).version == 6:
-                    host = f"[{ipaddress.ip_address(host).compressed}]"
-            except Exception:
-                pass
-        p = port or (u.port or (443 if scheme == "https" else 80))
-        return f"{scheme}://{host}:{p}"
-
-    # No scheme provided: treat as host (possibly with port)
-    host_part = raw
-    detected_port: int | None = None
-    host_out = host_part
-
-    # Case 1: Bracketed IPv6, optionally with :port
-    m = re.match(r"^\[(?P<ipv6>[^\]]+)\](?::(?P<p>\d+))?$", host_part)
-    if m:
-        addr = m.group("ipv6")
-        try:
-            ip = ipaddress.ip_address(addr)
-            if ip.version == 6:
-                host_out = f"[{ip.compressed}]"
-                if m.group("p"):
-                    try:
-                        detected_port = int(m.group("p"))
-                    except Exception:
-                        detected_port = None
-        except Exception:
-            # Fall through leaving host_out as-is
-            pass
-    else:
-        # Case 2: Unbracketed IPv6 literal (multiple colons) without port
-        if host_part.count(":") >= 2:
-            try:
-                ip = ipaddress.ip_address(host_part)
-                if ip.version == 6:
-                    host_out = f"[{ip.compressed}]"
-            except Exception:
-                # Not a pure IPv6 literal; could be hostname with colon issues
-                pass
-        else:
-            # Case 3: hostname/IPv4, optional :port
-            if ":" in host_part:
-                name, _, pstr = host_part.partition(":")
-                host_out = name
-                if pstr.isdigit():
-                    detected_port = int(pstr)
-            else:
-                host_out = host_part
-
-    scheme = "https" if prefer_https else "http"
-    p = port or detected_port or (443 if scheme == "https" else 80)
-    return f"{scheme}://{host_out}:{p}"
-
-
-def _xtream_api(base: str, username: str, password: str, **params) -> dict:
-    logger.info("Xtream API call base=%s action=%s", base, params.get('action'))
-    """Call player_api.php and return JSON."""
-    q = {"username": username, "password": password}
-
-    q.update(params)
-    r = httpx.get(
-        f"{base}/player_api.php", params=q, headers=HEADERS, verify=False
-    )
-    r.raise_for_status()
-    return r.json()
-
-
-def _build_m3u_from_xtream(
-    base: str, username: str, password: str
-) -> tuple[str, dict]:
-    logger.info("Building M3U from Xtream base=%s user=%s", base, username)
-    base = _normalize_base(base)
-    # Submit API calls in
+# Functions from xtream and video_utils are imported at top and re-exported
+# No need to redefine them here

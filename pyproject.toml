@@ -1,0 +1,19 @@
+[tool.black]
+line-length = 120
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | build
+  | dist
+  | PySimpleGUI\.py
+  | player\.py
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 120
+skip = [".venv", "build", "dist", "PySimpleGUI.py", "player.py"]
+

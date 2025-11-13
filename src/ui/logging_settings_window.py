@@ -1,12 +1,13 @@
 """PySimpleGUI window for logging settings."""
+
 from __future__ import annotations
 
 import logging
 
-from . import PySimpleGUI as sg
-
-from core.logging_settings import LoggingSettings, DEFAULT_LOGGING_CONFIG
 from core.config import ICON
+from core.logging_settings import DEFAULT_LOGGING_CONFIG, LoggingSettings
+
+from . import PySimpleGUI as sg
 
 _LEVELS = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 
@@ -24,39 +25,78 @@ def _show_logging_settings_window(current: LoggingSettings) -> bool:
             current = LoggingSettings()
         cfg = current.settings
         layout = [
-            [sg.Text("Logging Settings", font=("Arial", 14, "bold"))],
+            [sg.Text("Logging Settings", font=("Arial", 16, "bold"), pad=((0, 0), (10, 15)))],
             [sg.HorizontalSeparator()],
+
+            # Log Level
+            [sg.Text("Log Configuration", font=("Arial", 12, "bold"), pad=((0, 0), (15, 10)))],
             [
-                sg.Text("Log Level", size=(20, 1)),
-                sg.Combo(_LEVELS, default_value=cfg.level, key="_level_", readonly=True, size=(15, 1)),
-                sg.Text("Controls verbosity (DEBUG is most verbose)", text_color="gray", font=("Arial", 8)),
+                sg.Text("Log Level:", size=(22, 1), pad=((10, 10), (5, 5))),
+                sg.Combo(_LEVELS, default_value=cfg.level, key="_level_", readonly=True, size=(18, 1)),
             ],
+            [sg.Text("Controls verbosity (DEBUG is most verbose)", text_color="gray", font=("Arial", 9), pad=((10, 10), (0, 10)))],
+
+            [sg.HorizontalSeparator(pad=((0, 0), (10, 10)))],
+
+            # File Management
+            [sg.Text("File Management", font=("Arial", 12, "bold"), pad=((0, 0), (10, 10)))],
             [
-                sg.Text("Max File Size (MB)", size=(20, 1)),
-                sg.Spin([i for i in range(1, 101)], initial_value=cfg.max_file_size_mb, key="_max_file_size_", size=(6, 1)),
-                sg.Text("Rotate when a log reaches this size", text_color="gray", font=("Arial", 8)),
+                sg.Text("Max File Size (MB):", size=(22, 1), pad=((10, 10), (5, 5))),
+                sg.Spin(
+                    [i for i in range(1, 101)],
+                    initial_value=cfg.max_file_size_mb,
+                    key="_max_file_size_",
+                    size=(10, 1)
+                ),
             ],
+            [sg.Text("Rotate when a log reaches this size", text_color="gray", font=("Arial", 9), pad=((10, 10), (0, 10)))],
+
             [
-                sg.Text("Backup Files Count", size=(20, 1)),
-                sg.Spin([i for i in range(1, 51)], initial_value=cfg.backup_count, key="_backup_count_", size=(6, 1)),
-                sg.Text("Number of rotated log files kept", text_color="gray", font=("Arial", 8)),
+                sg.Text("Backup Files Count:", size=(22, 1), pad=((10, 10), (5, 5))),
+                sg.Spin(
+                    [i for i in range(1, 51)],
+                    initial_value=cfg.backup_count,
+                    key="_backup_count_",
+                    size=(10, 1)
+                ),
             ],
+            [sg.Text("Number of rotated log files kept", text_color="gray", font=("Arial", 9), pad=((10, 10), (0, 10)))],
+
             [
-                sg.Text("Retention (days)", size=(20, 1)),
-                sg.Spin([i for i in range(0, 366)], initial_value=cfg.retention_days, key="_retention_days_", size=(6, 1)),
-                sg.Text("Delete log files older than N days (0 = keep all)", text_color="gray", font=("Arial", 8)),
+                sg.Text("Retention (days):", size=(22, 1), pad=((10, 10), (5, 5))),
+                sg.Spin(
+                    [i for i in range(0, 366)],
+                    initial_value=cfg.retention_days,
+                    key="_retention_days_",
+                    size=(10, 1)
+                ),
             ],
+            [sg.Text("Delete log files older than N days (0 = keep all)", text_color="gray", font=("Arial", 9), pad=((10, 10), (0, 10)))],
+
+            [sg.HorizontalSeparator(pad=((0, 0), (10, 10)))],
+
+            # Output Options
+            [sg.Text("Output Options", font=("Arial", 12, "bold"), pad=((0, 0), (10, 10)))],
             [
-                sg.Checkbox("Mirror to Console", default=cfg.console_enabled, key="_console_enabled_"),
-                sg.Text("Also print logs to stdout", text_color="gray", font=("Arial", 8)),
+                sg.Checkbox(
+                    "Mirror to Console",
+                    default=cfg.console_enabled,
+                    key="_console_enabled_",
+                    pad=((10, 10), (5, 5))
+                ),
             ],
-            [sg.HorizontalSeparator()],
+            [sg.Text("Also print logs to stdout", text_color="gray", font=("Arial", 9), pad=((10, 10), (0, 10)))],
+
+            [sg.HorizontalSeparator(pad=((0, 0), (15, 15)))],
+
+            # Action Buttons - Right aligned with proper spacing
             [
-                sg.Button("Restore Defaults", key="_restore_"),
+                sg.Button("Restore Defaults", key="_restore_", size=(15, 1), pad=((10, 5), (5, 10))),
                 sg.Push(),
-                sg.Button("Cancel", key="_cancel_"),
-                sg.Button("Save", key="_save_", button_color=("white", "green")),
+                sg.Button("Cancel", key="_cancel_", size=(10, 1), pad=((5, 5), (5, 10))),
+                sg.Button("Save", key="_save_", button_color=("white", "green"), size=(10, 1), pad=((5, 10), (5, 10))),
             ],
+            [sg.Text("Note: Settings apply on next application startup", font=("Arial", 9, "italic"), text_color="orange", pad=((10, 10), (0, 15)))],
         ]
 
         win = sg.Window("Logging Settings", layout, icon=ICON, modal=True, finalize=True, keep_on_top=True)

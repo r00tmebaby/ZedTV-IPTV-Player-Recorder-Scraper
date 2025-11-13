@@ -8,18 +8,37 @@ ZeDTV is an all-in-one IPTV toolkit: scrape & browse channels, play them, build 
 
 ---
 
-## What’s New (v1.4)
+## What's New (v1.4)
 - **Xtream Codes / Xtream UI integration**
   - **Add Account** wizard (test & save credentials).
   - **Accounts…** manager with **Use / Details / Delete / Refresh Snapshot**.
   - Builds **rich M3U** (Live + VOD) with logos, ratings, release year, plots, directors.
   - **Snapshot caching**: full API reply saved locally for instant table rendering without re-hitting the server.
+- **VLC Settings Configuration**
+  - Adjustable network buffering (reduce lag/stuttering)
+  - Hardware acceleration settings (GPU decoding)
+  - Audio/video output selection
+  - Deinterlacing and advanced options
+- **Improved M3U Parsing**
+  - Exact category matching (no false positives)
+  - Better error handling with debugging info
+  - Instant search filtering (no search button needed)
+- **Recording Fixed**
+  - Proper VLC sout format for reliable recording
+  - Records to MP4 while displaying video
+  - Safe Windows filenames with timestamp
 - **Session restore**
   - Remembers and **autoloads your last used account or M3U** on startup.
 - **Quality-of-life**
-  - Category & channel search.
+  - Category & channel search with instant filtering.
   - Context menu: **Full Screen / Record / Play in VLC**.
   - Safer filenames for recordings; better Windows path handling.
+- **Performance**
+  - **Fast startup**: 1-2 seconds (folder-based build, not single-file)
+  - Bundled VLC libraries (no system VLC needed for playback)
+  - 105 unit tests ensuring reliability
+- **Idle Background Canvas**
+  - Shows `background.jpg` (from `src/data/thumbnails/`) on the video canvas when no video is playing or after Stop.
 
 ---
 
@@ -75,9 +94,20 @@ ZeDTV is an all-in-one IPTV toolkit: scrape & browse channels, play them, build 
 
 ## Installation
 
+### Option 1: Windows Executable (Recommended)
+1. **Download** `ZedTV-IPTV-Player-v1.4.zip` from releases
+2. **Extract** all files to a folder
+3. **Run** `ZedTV-IPTV-Player.exe`
+
+**Note:** Keep all files together! The .exe needs the `_internal` folder and `libs` folder to work.
+
+**Startup time:** 1-2 seconds (much faster than single-file builds!)
+
+### Option 2: Run from Source
+
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/iptv-scraper-player.git
+   git clone https://github.com/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper.git
    cd iptv-scraper-player
    ```
 
@@ -95,7 +125,7 @@ ZeDTV is an all-in-one IPTV toolkit: scrape & browse channels, play them, build 
 
 3. **Run the application**
    ```bash
-   python main.py
+   python src/main.py
    ```
 
 ---
@@ -135,6 +165,7 @@ programs/                # Additional modules
 - Pick a channel/movie (right).  
 - Double-click or right-click for **Full Screen / Record / Play in VLC**.  
 - **Record** writes MP4 files to the `records/` directory.
+- When idle (no playback), the video canvas shows the placeholder `background.jpg`.
 
 ### Create a Custom List
 - **File → Custom List** to save the currently selected items into a new M3U.
@@ -173,7 +204,7 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## Contributing / Issues
 Found a bug or have an idea? Open an issue:  
-`https://github.com/yourusername/iptv-scraper-player/issues`
+`https://github.com/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper`
 
 ---
 

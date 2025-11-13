@@ -1,19 +1,19 @@
 """Video-related utility helpers (safe filename + record sout builder + external VLC launcher)."""
+
 from __future__ import annotations
 
+import logging
 import os
 import re
 import shutil
 import subprocess
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, List
 from sys import platform
-
-from ui import PySimpleGUI as sg
-import logging
+from typing import List, Optional
 
 from core.config import INVALID_WIN, RECORDS_FOLDER
+from ui import PySimpleGUI as sg
 
 logger = logging.getLogger("zedtv.video")
 
@@ -35,12 +35,7 @@ def build_record_sout(title: str) -> str:
     dst = str(dst_path)
     if platform.startswith("win"):
         dst = dst.replace("\\", "\\\\")  # Escape for VLC on Windows
-    return (
-        f":sout=#duplicate{{"
-        f"dst=std{{access=file,mux=mp4,dst='{dst}'}},"
-        f"dst=display"
-        f"}}"
-    )
+    return f":sout=#duplicate{{" f"dst=std{{access=file,mux=mp4,dst='{dst}'}}," f"dst=display" f"}}"
 
 
 def _detect_vlc() -> Optional[List[str]]:
@@ -82,4 +77,3 @@ def launch_vlc_external(url: str) -> None:
             )
     except Exception as ex:
         sg.popup_error(f"Failed to launch VLC: {ex}", keep_on_top=True)
-

@@ -5,7 +5,7 @@ Manages user-configurable VLC options that are relevant for IPTV streaming.
 
 import json
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 
 from .config import DATA_FOLDER
 
@@ -16,26 +16,21 @@ SETTINGS_FILE = Path(DATA_FOLDER) / "vlc_settings.json"
 DEFAULT_VLC_SETTINGS = {
     # Network & Streaming
     "network_caching": 1000,  # ms - buffer for network streams (default: 1000)
-    "live_caching": 300,      # ms - buffer for live streams (default: 300)
-
+    "live_caching": 300,  # ms - buffer for live streams (default: 300)
     # Hardware Acceleration
-    "hw_decoding": "auto",    # auto, disabled, d3d11va, dxva2, qsv
-
+    "hw_decoding": "auto",  # auto, disabled, d3d11va, dxva2, qsv
     # Audio
-    "audio_output": "auto",   # auto, directsound, wasapi, mmdevice
-    "audio_volume": 100,       # 0-200
-    "audio_track": -1,         # -1 = auto, 0+ = specific track
-
+    "audio_output": "auto",  # auto, directsound, wasapi, mmdevice
+    "audio_volume": 100,  # 0-200
+    "audio_track": -1,  # -1 = auto, 0+ = specific track
     # Video
-    "video_output": "auto",   # auto, direct3d11, direct3d9, opengl
-    "deinterlace": "off",      # off, on, auto
-    "aspect_ratio": "",        # empty = auto, or "16:9", "4:3", etc.
-
+    "video_output": "auto",  # auto, direct3d11, direct3d9, opengl
+    "deinterlace": "off",  # off, on, auto
+    "aspect_ratio": "",  # empty = auto, or "16:9", "4:3", etc.
     # Subtitles
-    "subtitle_track": -1,      # -1 = disabled, 0+ = specific track
-
+    "subtitle_track": -1,  # -1 = disabled, 0+ = specific track
     # Advanced
-    "skip_frames": False,      # Skip frames if system is too slow
+    "skip_frames": False,  # Skip frames if system is too slow
     "drop_late_frames": True,  # Drop frames that are too late
     "reset_plugins_cache": True,  # Reset plugin cache on startup
 }
@@ -51,7 +46,7 @@ class VLCSettings:
         """Load settings from file or return defaults."""
         if SETTINGS_FILE.exists():
             try:
-                with open(SETTINGS_FILE, 'r', encoding='utf-8') as f:
+                with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
                     saved = json.load(f)
                 # Merge with defaults to add any new settings
                 settings = DEFAULT_VLC_SETTINGS.copy()
@@ -64,7 +59,7 @@ class VLCSettings:
     def save_settings(self) -> None:
         """Save current settings to file."""
         try:
-            with open(SETTINGS_FILE, 'w', encoding='utf-8') as f:
+            with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
                 json.dump(self.settings, f, indent=2)
         except Exception as e:
             print(f"Failed to save VLC settings: {e}")
@@ -148,4 +143,3 @@ SETTING_OPTIONS = {
     "video_output": ["auto", "direct3d11", "direct3d9", "opengl"],
     "deinterlace": ["off", "on", "auto"],
 }
-

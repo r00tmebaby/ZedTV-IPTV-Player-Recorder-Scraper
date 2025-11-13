@@ -3,9 +3,10 @@ Playback control module for media playback operations.
 
 This module handles media playback initialization, control, and error handling.
 """
+
 import logging
 from sys import platform as platform
-from typing import Any, Optional
+from typing import Any
 
 from ui.layout import sg
 
@@ -13,12 +14,17 @@ from ui.layout import sg
 log = logging.getLogger(__name__)
 
 
-async def play_media(media_play_link: Any, full_screen: bool, player_instance: Any,
-                     main_window: Any, canvas_element: Any, 
-                     clear_background_callback: callable) -> None:
+async def play_media(
+    media_play_link: Any,
+    full_screen: bool,
+    player_instance: Any,
+    main_window: Any,
+    canvas_element: Any,
+    clear_background_callback: callable,
+) -> None:
     """
     Play media content in normal or fullscreen mode.
-    
+
     Args:
         media_play_link: Media object or URL string to play
         full_screen: Whether to play in fullscreen mode
@@ -27,9 +33,9 @@ async def play_media(media_play_link: Any, full_screen: bool, player_instance: A
         canvas_element: Canvas element for video display
         clear_background_callback: Callback to clear background image
     """
-    media_url = getattr(media_play_link, 'get_mrl', lambda: str(media_play_link))()
+    media_url = getattr(media_play_link, "get_mrl", lambda: str(media_play_link))()
     log.info("Starting playback: %s, fullscreen=%s", media_url, full_screen)
-    
+
     # Check if VLC is available
     try:
         if player_instance.is_dummy_instance():
@@ -40,7 +46,7 @@ async def play_media(media_play_link: Any, full_screen: bool, player_instance: A
                 "• Or set PYTHON_VLC_LIB_PATH to libvlc.dll and PYTHON_VLC_MODULE_PATH to VLC plugins\n"
                 "• Or use 'Play in VLC' from the context menu"
             )
-            log.error("VLC not available: %s", msg.replace('\n', ' '))
+            log.error("VLC not available: %s", msg.replace("\n", " "))
             try:
                 sg.popup_error(msg, keep_on_top=True)
             except Exception as e:
@@ -49,7 +55,7 @@ async def play_media(media_play_link: Any, full_screen: bool, player_instance: A
     except Exception as e:
         log.error("Failed to check VLC availability: %s", e)
         return
-    
+
     # Stop any current playback
     try:
         if player_instance.players is not None:
@@ -57,7 +63,7 @@ async def play_media(media_play_link: Any, full_screen: bool, player_instance: A
             log.debug("Stopped previous playback")
     except Exception as e:
         log.warning("Failed to stop previous playback: %s", e)
-    
+
     # Set the media to play
     try:
         player_instance.players.set_media(media_play_link)
@@ -65,10 +71,10 @@ async def play_media(media_play_link: Any, full_screen: bool, player_instance: A
     except Exception as e:
         log.error("Failed to set media: %s", e)
         return
-    
+
     # Clear background
     clear_background_callback()
-    
+
     # Detach any previous window handle to avoid stale bindings
     try:
         player_instance.players.set_xwindow(0)
@@ -76,7 +82,7 @@ async def play_media(media_play_link: Any, full_screen: bool, player_instance: A
         log.debug("Detached previous window handles")
     except Exception as e:
         log.warning("Failed to detach window handles: %s", e)
-    
+
     if full_screen:
         log.debug("Entering fullscreen mode")
         player_instance.enter_fullscreen_window(main_window)
@@ -86,7 +92,7 @@ async def play_media(media_play_link: Any, full_screen: bool, player_instance: A
             canvas_widget = canvas_element.Widget
             canvas_widget.update_idletasks()
             canvas_id = canvas_widget.winfo_id()
-            
+
             if platform.startswith("linux"):
                 player_instance.players.set_xwindow(canvas_id)
                 log.debug("Attached to xwindow: %s", canvas_id)
@@ -95,12 +101,11 @@ async def play_media(media_play_link: Any, full_screen: bool, player_instance: A
                 log.debug("Attached to hwnd: %s", canvas_id)
         except Exception as e:
             log.error("Failed to attach player to canvas: %s", e)
-    
+
     # Start playback
     try:
         player_instance.players.play()
-        log.info("Playback started successfully in %s mode", 
-                "fullscreen" if full_screen else "normal")
+        log.info("Playback started successfully in %s mode", "fullscreen" if full_screen else "normal")
     except Exception as e:
         log.error("Failed to start playback: %s", e)
 
@@ -108,7 +113,7 @@ async def play_media(media_play_link: Any, full_screen: bool, player_instance: A
 def stop_playback(player_instance: Any, show_background_callback: callable) -> None:
     """
     Stop media playback and show background.
-    
+
     Args:
         player_instance: Player class instance
         show_background_callback: Callback to show background image

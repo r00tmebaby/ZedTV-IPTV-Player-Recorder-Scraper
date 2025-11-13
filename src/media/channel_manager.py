@@ -3,10 +3,9 @@ Channel list manager with ACTUAL thumbnail images displayed inline
 Creates visual rows with sg.Image() widgets showing real thumbnails
 """
 
-from ui import PySimpleGUI as sg
 from pathlib import Path
-from typing import List, Dict
-import threading
+
+from ui import PySimpleGUI as sg
 
 from .thumbnails import get_thumbnail_path
 
@@ -44,8 +43,8 @@ def create_channel_row_with_thumbnail(idx, title, rating, year, logo_url, ui_set
                 sg.Text(
                     "⏳",
                     font=(table_font[0], thumbnail_size // 3),
-                    size=(int(thumbnail_size/10), int(thumbnail_size/20)),
-                    justification='center',
+                    size=(int(thumbnail_size / 10), int(thumbnail_size / 20)),
+                    justification="center",
                     key=f"_thumb_placeholder_{idx}_",
                     pad=(5, 5),
                 )
@@ -57,7 +56,7 @@ def create_channel_row_with_thumbnail(idx, title, rating, year, logo_url, ui_set
                 "📺",
                 font=table_font,
                 size=(3, 2),
-                justification='center',
+                justification="center",
                 pad=(5, 5),
             )
         )
@@ -107,14 +106,12 @@ def build_channel_rows(channel_data, ui_settings):
 
     for idx, row in enumerate(channel_data):
         if len(row) >= 5:
-            icon, title, rating, year, logo_url = row
+            _, title, rating, year, logo_url = row
         else:
-            icon, title, rating, year = row[0], row[1], row[2], row[3]
+            _, title, rating, year = row[0], row[1], row[2], row[3]
             logo_url = ""
 
-        channel_row = create_channel_row_with_thumbnail(
-            idx, title, rating, year, logo_url, ui_settings
-        )
+        channel_row = create_channel_row_with_thumbnail(idx, title, rating, year, logo_url, ui_settings)
         rows.extend(channel_row)
 
     return rows
@@ -151,18 +148,20 @@ class ChannelListManager:
 
         for idx, row in enumerate(channel_data):
             if len(row) >= 5:
-                icon, title, rating, year, logo_url = row
+                _, title, rating, year, logo_url = row
             else:
-                icon, title, rating, year = row[0], row[1], row[2], row[3]
+                _, title, rating, year = row[0], row[1], row[2], row[3]
                 logo_url = ""
 
-            self.channels.append({
-                'idx': idx,
-                'title': title,
-                'rating': rating,
-                'year': year,
-                'logo_url': logo_url,
-            })
+            self.channels.append(
+                {
+                    "idx": idx,
+                    "title": title,
+                    "rating": rating,
+                    "year": year,
+                    "logo_url": logo_url,
+                }
+            )
 
     def get_channel(self, idx):
         """Get channel data by index."""
@@ -185,5 +184,3 @@ def update_channel_list(window, channel_data, ui_settings, channel_manager):
 
     # Update the visual column with thumbnail images
     update_channel_column(window, channel_data, ui_settings)
-
-

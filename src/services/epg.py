@@ -3,11 +3,12 @@ This module provides lightweight functions to parse common EPG formats
 into a normalized in-memory index that maps channel identifiers (like epg-id)
 to programme lists.
 """
+
 from __future__ import annotations
 
-from typing import Dict, List, Optional
 import json
 import logging
+from typing import Dict, List, Optional
 from xml.etree import ElementTree as ET
 
 log = logging.getLogger("zedtv.epg")
@@ -72,9 +73,11 @@ def load_xmltv(xml_content: str) -> EPGIndex:
 
 essential_keys = {"channel", "start", "stop", "title"}
 
+
 def load_json_epg(json_content: str, mapping: Optional[dict] = None) -> EPGIndex:
     """Parse a simple JSON EPG format.
-    Expected shape (flexible): { "programmes": [ {"channel": "id", "start": "...", "stop": "...", "title": "...", ... }, ... ] }
+    Expected shape (flexible):
+        {"programmes": [{"channel": "id", "start": "...", "stop": "...", "title": "...", ...}, ...]}
     mapping: optional dict to rename keys: {"chan":"channel", "beg":"start", ...}
     """
     index: EPGIndex = {}
@@ -97,13 +100,13 @@ def load_json_epg(json_content: str, mapping: Optional[dict] = None) -> EPGIndex
 
     def norm(d: dict) -> Programme:
         return {
-            "start": to_str(d.get(m.get("start","start"), "")),
-            "stop": to_str(d.get(m.get("stop","stop"), "")),
-            "title": to_str(d.get(m.get("title","title"), "")),
-            "desc": to_str(d.get(m.get("desc","desc"), "")),
-            "category": to_str(d.get(m.get("category","category"), "")),
-            "episode": to_str(d.get(m.get("episode","episode"), "")),
-            "rating": to_str(d.get(m.get("rating","rating"), "")),
+            "start": to_str(d.get(m.get("start", "start"), "")),
+            "stop": to_str(d.get(m.get("stop", "stop"), "")),
+            "title": to_str(d.get(m.get("title", "title"), "")),
+            "desc": to_str(d.get(m.get("desc", "desc"), "")),
+            "category": to_str(d.get(m.get("category", "category"), "")),
+            "episode": to_str(d.get(m.get("episode", "episode"), "")),
+            "rating": to_str(d.get(m.get("rating", "rating"), "")),
         }
 
     for item in progs:
@@ -111,7 +114,7 @@ def load_json_epg(json_content: str, mapping: Optional[dict] = None) -> EPGIndex
             # Skip non-dict items
             if not isinstance(item, dict):
                 continue
-            ch = item.get(m.get("channel","channel"), "")
+            ch = item.get(m.get("channel", "channel"), "")
             if not ch:
                 continue
             # Convert integer channel IDs to string
@@ -127,5 +130,6 @@ def load_json_epg(json_content: str, mapping: Optional[dict] = None) -> EPGIndex
             pass
     log.info("JSON EPG loaded channels=%d total_programmes=%d", len(index), sum(len(v) for v in index.values()))
     return index
+
 
 # NOTE: This module remains at top-level for compatibility; future code may move to services.epg.

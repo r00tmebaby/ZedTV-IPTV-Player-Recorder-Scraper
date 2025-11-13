@@ -1,10 +1,11 @@
 """M3U parser (structured Channel model and robust parsing)."""
+
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Iterable
-import re
 import logging
+import re
+from dataclasses import dataclass, field
+from typing import Dict, Iterable, List, Optional
 
 logger = logging.getLogger("zedtv.m3u")
 
@@ -79,26 +80,32 @@ class M3UParser:
         while i < total:
             line = lines[i].strip("\ufeff\ufdfa ")
             if not line:
-                i += 1; continue
+                i += 1
+                continue
             if line.startswith("#EXTM3U"):
                 pass
             m_grp = _EXTGRP_RE.match(line)
             if m_grp:
-                last_extgrp = m_grp.group("grp").strip(); i += 1; continue
+                last_extgrp = m_grp.group("grp").strip()
+                i += 1
+                continue
             if line.startswith(_PROP_PREFIXES):
                 pending_props.append(lines[i])
                 try:
                     if line.startswith("#EXTVLCOPT:"):
                         kv = line.split(":", 1)[1]
                         if "=" in kv:
-                            k, v = kv.split("=", 1); pending_props.append(f"__PARSED_VLC__:{k.strip()}={v.strip()}")
+                            k, v = kv.split("=", 1)
+                            pending_props.append(f"__PARSED_VLC__:{k.strip()}={v.strip()}")
                     elif line.startswith("#KODIPROP:"):
                         kv = line.split(":", 1)[1]
                         if "=" in kv:
-                            k, v = kv.split("=", 1); pending_props.append(f"__PARSED_KODI__:{k.strip()}={v.strip()}")
+                            k, v = kv.split("=", 1)
+                            pending_props.append(f"__PARSED_KODI__:{k.strip()}={v.strip()}")
                 except Exception:
                     logger.debug("Failed parsing property line '%s'", line)
-                i += 1; continue
+                i += 1
+                continue
             m = _EXTINF_RE.match(line)
             if m:
                 duration_str = m.group("duration")
@@ -110,7 +117,8 @@ class M3UParser:
                 title = m.group("title").strip()
                 attrs: Dict[str, str] = {}
                 for am in _ATTR_RE.finditer(attr_part):
-                    key = am.group(1).strip(); val = (am.group(2) or am.group(3) or am.group(4) or "").strip()
+                    key = am.group(1).strip()
+                    val = (am.group(2) or am.group(3) or am.group(4) or "").strip()
                     if key not in attrs:
                         attrs[key] = val
                 group = attrs.get("group-title", "") or (last_extgrp or "")
@@ -119,29 +127,50 @@ class M3UParser:
                 while j < total:
                     nxt = lines[j].strip()
                     if not nxt:
-                        j += 1; continue
+                        j += 1
+                        continue
                     if nxt.startswith("#") and not nxt.lower().startswith("#http"):
                         break
-                    url = nxt; break
+                    url = nxt
+                    break
                 if not url:
-                    i += 1; pending_props.clear(); last_extgrp = None; continue
-                chan = Channel(index=index, duration=duration, title=title, url=url, attrs=attrs, group=group, properties=[p for p in pending_props if not p.startswith("__PARSED_")], extgrp=last_extgrp, raw_extinf=lines[i])
+                    i += 1
+                    pending_props.clear()
+                    last_extgrp = None
+                    continue
+                chan = Channel(
+                    index=index,
+                    duration=duration,
+                    title=title,
+                    url=url,
+                    attrs=attrs,
+                    group=group,
+                    properties=[p for p in pending_props if not p.startswith("__PARSED_")],
+                    extgrp=last_extgrp,
+                    raw_extinf=lines[i],
+                )
                 for pp in pending_props:
                     if pp.startswith("__PARSED_VLC__:"):
                         kv = pp.split(":", 1)[1]
                         if "=" in kv:
-                            k, v = kv.split("=", 1); chan.vlc_opts[k] = v
+                            k, v = kv.split("=", 1)
+                            chan.vlc_opts[k] = v
                     elif pp.startswith("__PARSED_KODI__:"):
                         kv = pp.split(":", 1)[1]
                         if "=" in kv:
-                            k, v = kv.split("=", 1); chan.kodi_props[k] = v
+                            k, v = kv.split("=", 1)
+                            chan.kodi_props[k] = v
                     elif pp.startswith("#") and not pp.startswith(_PROP_PREFIXES):
                         chan.other_props.append(pp)
                 epg_id = attrs.get("epg-id") or attrs.get("epg_channel_id") or attrs.get("tvg-id")
                 if epg_id:
                     chan.attrs.setdefault("epg-id", epg_id)
                 self.channels.append(chan)
-                index += 1; pending_props.clear(); last_extgrp = None; i = j + 1; continue
+                index += 1
+                pending_props.clear()
+                last_extgrp = None
+                i = j + 1
+                continue
             i += 1
 
     def groups(self) -> List[str]:
@@ -150,7 +179,8 @@ class M3UParser:
         for c in self.channels:
             g = c.group_title.strip() or "Other"
             if g not in added:
-                added.add(g); seen.append(g)
+                added.add(g)
+                seen.append(g)
         return seen
 
     def filter_by_groups(self, groups: Iterable[str]) -> List[Channel]:
@@ -169,7 +199,8 @@ class M3UParser:
             for k in key_order:
                 val = ch.attrs.get(k)
                 if val and val in epg_index:
-                    epg_key = val; break
+                    epg_key = val
+                    break
             if epg_key:
                 ch.epg = epg_index.get(epg_key, [])
                 enriched += 1
@@ -179,4 +210,3 @@ class M3UParser:
 def parse_m3u(raw: str) -> M3UParser:
     logger.info("parse_m3u invoked raw_length=%d", len(raw or ""))
     return M3UParser(raw)
-

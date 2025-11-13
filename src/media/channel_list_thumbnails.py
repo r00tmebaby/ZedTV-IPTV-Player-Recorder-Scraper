@@ -2,14 +2,13 @@
 Channel list with thumbnails displayed INLINE using PySimpleGUI Image elements
 """
 
-from ui import PySimpleGUI as sg
 from pathlib import Path
-from typing import List
-import threading
-import threading
+
+from ui_settings import UISettings
+
+from ui import PySimpleGUI as sg
 
 from .thumbnails import get_thumbnail_path
-from ui_settings import UISettings
 
 
 def create_channel_list_with_thumbnails(ui_settings: UISettings, initial_data=None):
@@ -28,8 +27,7 @@ def create_channel_list_with_thumbnails(ui_settings: UISettings, initial_data=No
     # Create column layout with thumbnails
     channel_rows = []
     for idx, (icon, title, rating, year, logo_url) in enumerate(initial_data):
-        row = create_channel_row(idx, icon, title, rating, year, logo_url,
-                                 show_thumbnails, thumbnail_size, table_font)
+        row = create_channel_row(idx, icon, title, rating, year, logo_url, show_thumbnails, thumbnail_size, table_font)
         channel_rows.append(row)
 
     if not channel_rows:
@@ -49,8 +47,7 @@ def create_channel_list_with_thumbnails(ui_settings: UISettings, initial_data=No
     return channel_column
 
 
-def create_channel_row(idx, icon, title, rating, year, logo_url,
-                       show_thumbnails, thumbnail_size, font):
+def create_channel_row(idx, icon, title, rating, year, logo_url, show_thumbnails, thumbnail_size, font):
     """Create a single channel row with thumbnail and info."""
 
     elements = []
@@ -74,7 +71,7 @@ def create_channel_row(idx, icon, title, rating, year, logo_url,
                     "🖼️",
                     font=(font[0], thumbnail_size // 4),
                     size=(3, 1),
-                    justification='center',
+                    justification="center",
                 )
             )
     else:
@@ -84,7 +81,7 @@ def create_channel_row(idx, icon, title, rating, year, logo_url,
                 icon,
                 font=font,
                 size=(3, 1),
-                justification='center',
+                justification="center",
             )
         )
 
@@ -140,12 +137,10 @@ def update_channel_list(window, channel_data, ui_settings):
             icon, title, rating, year = item[0], item[1], item[2], item[3]
             logo_url = ""
 
-        row = create_channel_row(idx, icon, title, rating, year, logo_url,
-                                 show_thumbnails, thumbnail_size, table_font)
+        row = create_channel_row(idx, icon, title, rating, year, logo_url, show_thumbnails, thumbnail_size, table_font)
         channel_rows.append(row)
 
     if not channel_rows:
         channel_rows = [[sg.Text("No channels", font=table_font)]]
 
     return channel_rows
-

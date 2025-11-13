@@ -1,4 +1,9 @@
-from core.app import _normalize_base
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
+from services.xtream import _normalize_base
 
 
 def test_bracketed_ipv6_with_port():
@@ -19,4 +24,3 @@ def test_empty_string_defaults_to_localhost_http():
     assert _normalize_base("") == "http://localhost:80"
     # but when prefer_https=True, should default to https localhost:443
     assert _normalize_base("", prefer_https=True) == "https://localhost:443"
-

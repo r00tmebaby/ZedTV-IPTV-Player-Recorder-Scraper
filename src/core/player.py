@@ -4,6 +4,7 @@ Player module for VLC media player functionality.
 This module handles all VLC player operations including initialization,
 playback control, fullscreen management, and media handling.
 """
+
 import logging
 import tkinter as tk
 from sys import platform as platform
@@ -15,7 +16,7 @@ import os
 from media import player
 from core.vlc_settings import VLCSettings
 
-# Module logger
+
 log = logging.getLogger(__name__)
 
 
@@ -33,8 +34,10 @@ class _DummyMediaPlayer:
             No-op function that accepts any arguments
         """
         log.debug("DummyMediaPlayer: accessing attribute '%s' (no-op)", name)
+
         def _noop(*a, **k):
             return None
+
         return _noop
 
 
@@ -76,7 +79,7 @@ def launch_vlc_external(url: str) -> None:
     """
     log.info("Attempting to launch external VLC for URL: %s", url)
     try:
-        exe = shutil.which('vlc')
+        exe = shutil.which("vlc")
         if exe:
             log.debug("Found VLC executable at: %s", exe)
             subprocess.Popen([exe, url], shell=False)
@@ -137,12 +140,11 @@ class Player:
             log.debug("VLC find_lib() returned: %s", lib_info)
             # Dump PATH prefix for diagnostics
             try:
-                path_prefix = os.environ.get('PATH', '')[:400]
+                path_prefix = os.environ.get("PATH", "")[:400]
                 log.debug("PATH (prefix): %s", path_prefix)
-                vlc_lib_path = os.environ.get('PYTHON_VLC_LIB_PATH')
-                vlc_module_path = os.environ.get('PYTHON_VLC_MODULE_PATH')
-                log.debug("PYTHON_VLC_LIB_PATH=%s PYTHON_VLC_MODULE_PATH=%s",
-                         vlc_lib_path, vlc_module_path)
+                vlc_lib_path = os.environ.get("PYTHON_VLC_LIB_PATH")
+                vlc_module_path = os.environ.get("PYTHON_VLC_MODULE_PATH")
+                log.debug("PYTHON_VLC_LIB_PATH=%s PYTHON_VLC_MODULE_PATH=%s", vlc_lib_path, vlc_module_path)
             except Exception as e:
                 log.debug("Failed to log PATH diagnostics: %s", e)
         except Exception as e:
@@ -238,8 +240,8 @@ class Player:
             try:
                 top.lift()
                 top.focus_force()
-                top.attributes('-topmost', True)
-                top.attributes('-topmost', False)
+                top.attributes("-topmost", True)
+                top.attributes("-topmost", False)
                 log.debug("Fullscreen window focused and brought to front")
             except Exception as e:
                 log.warning("Failed to focus fullscreen window: %s", e)
@@ -261,8 +263,7 @@ class Player:
             log.error("Failed to enter fullscreen window: %s", e, exc_info=True)
 
     @classmethod
-    def exit_fullscreen_window(cls, main_window: Any, canvas_element: Any,
-                               show_background_callback: callable) -> None:
+    def exit_fullscreen_window(cls, main_window: Any, canvas_element: Any, show_background_callback: callable) -> None:
         """
         Exit controlled fullscreen and reattach to the small canvas.
 
@@ -324,4 +325,3 @@ class Player:
             show_background_callback()
 
         log.info("Successfully exited fullscreen mode")
-

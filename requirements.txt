@@ -1,4 +1,9 @@
 requests
 pydantic
 black
+isort
+mypy
 httpx[http2]
+Pillow>=10.0.0
+kivy>=2.3.0
+kivy-garden>=0.1.5
