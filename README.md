@@ -1,10 +1,4 @@
 # ZeDTV - IPTV Scraper, Player, Recorder and M3U List Creator
-
-[![CI](https://github.com/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper/actions/workflows/ci.yml/badge.svg)](https://github.com/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/tests-339%20passing-brightgreen)](https://github.com/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper/actions)
-[![Python](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/downloads/)
-[![License](https://img.shields.io/github/license/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper)](LICENSE)
-
 <img src="MEDIA/1.png" alt="ZeDTV screenshot">
 <img src="MEDIA/2.png" alt="ZeDTV screenshot">
 <img src="MEDIA/3.png" alt="ZeDTV screenshot">
@@ -265,3 +259,11 @@ Found a bug or have an idea? Open an issue:
 
 ## Disclaimer
 This tool is intended for personal use only. You are responsible for how you use it. Respect content rights and local laws.
+
+---
+
+## VLC Libraries in the Build
+- We ship and test against a full set of VLC libs/plugins during development.
+- For release builds, we bundle only the plugins needed for typical IPTV playback and MP4 recording (access, demux, codec, packetizer, stream_out, mux, audio/video outputs, and d3d11).
+- This keeps the package smaller and helps startup stay fast while preserving all current functionality.
+- If you need an extra VLC feature (e.g., uncommon protocols), open an issue and we can include that plugin family.

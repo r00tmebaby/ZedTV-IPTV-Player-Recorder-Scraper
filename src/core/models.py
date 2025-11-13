@@ -73,7 +73,7 @@ class Data:
     filename: str = os.path.join(os.getcwd(), "programs.py")
     data: str = ""  # raw M3U file contents
     ip_info = {}  # defer fetching until user opens IP Info
-    # New robust parser instance and channel objects list
+    # New parser instance and channel objects list
     m3u_parser = None  # will hold M3UParser instance
     parsed_channels: List[object] = []  # list of Channel dataclasses from m3u_parser
     selected_category_indices: List[int] = []  # newly added: track selected category table indices

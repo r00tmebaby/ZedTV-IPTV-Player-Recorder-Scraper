@@ -21,7 +21,7 @@ class LoggingConfig:
     level: str = "INFO"
     # Maximum size of a single log file in megabytes before rotation
     max_file_size_mb: int = 5
-    # How many rotated log files to keep (per file base name)
+    # How many rotated log files to keep (per-file base name)
     backup_count: int = 5
     # Remove log files older than this many days from the logs directory (0 = no age cleanup)
     retention_days: int = 14

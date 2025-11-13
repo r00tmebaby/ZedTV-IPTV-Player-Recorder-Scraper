@@ -7,6 +7,7 @@ This module handles asynchronous loading and mapping of EPG data from XML and JS
 import logging
 from pathlib import Path
 from typing import Any, Dict, List
+import sys
 
 from services.epg import load_json_epg, load_xmltv
 
@@ -26,7 +27,7 @@ async def load_epg_async(data_module: Any) -> None:
     """
     log.info("Starting background EPG loading")
     try:
-        base_dir = Path(__file__).parent.parent / "data" / "epg"
+        base_dir = (Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent.parent) / "data" / "epg"
         log.debug("EPG base directory: %s", base_dir)
 
         epg_index: Dict[str, List[Any]] = {}

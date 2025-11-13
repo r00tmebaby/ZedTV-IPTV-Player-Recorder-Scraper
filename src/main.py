@@ -4,9 +4,58 @@ Main application entry point for ZedTV IPTV Player.
 This module orchestrates the application initialization and main event loop.
 """
 
+# Early crash capture before importing the rest of the app
+import sys as _sys
+import os as _os
+
+
+def _write_startup_error(exc_type, exc, tb):
+    try:
+        import traceback, datetime
+        base_dir = _os.path.dirname(_sys.executable) if getattr(_sys, "frozen", False) else _os.getcwd()
+        log_path = _os.path.join(base_dir, "startup_error.log")
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write("\n=== Startup error at %s ===\n" % datetime.datetime.now().isoformat())
+            f.write("%s: %s\n" % (exc_type.__name__, exc))
+            traceback.print_tb(tb, file=f)
+            # Useful env context
+            f.write("PYTHON_VLC_LIB_PATH=%s\n" % _os.environ.get("PYTHON_VLC_LIB_PATH", ""))
+            f.write("PYTHON_VLC_MODULE_PATH=%s\n" % _os.environ.get("PYTHON_VLC_MODULE_PATH", ""))
+            f.write("VLC_PLUGIN_PATH=%s\n" % _os.environ.get("VLC_PLUGIN_PATH", ""))
+            f.write("PATH contains exe dir? %s\n" % (base_dir in _os.environ.get("PATH", "")))
+        # Also try the app logger if already initialized
+        try:
+            import logging as _logging
+            _logging.getLogger().error("Uncaught exception", exc_info=(exc_type, exc, tb))
+            for _h in _logging.getLogger().handlers:
+                try:
+                    _h.flush()
+                except Exception:
+                    pass
+        except Exception:
+            pass
+        # Best-effort user notice
+        try:
+            import ctypes
+            msg = (
+                "ZedTV failed to start.\n\n"
+                "A startup_error.log was written next to the .exe.\n"
+                "Please share it so we can fix the issue."
+            )
+            ctypes.windll.user32.MessageBoxW(None, msg, "ZedTV Startup Error", 0x00000010)
+        except Exception:
+            pass
+    except Exception:
+        pass
+
+_sys.excepthook = _write_startup_error
+
+# Now import the rest of the app
 import asyncio
 import ctypes
 import logging
+import os
+import sys
 from typing import Optional
 
 from __version__ import APP_NAME, __version__
@@ -15,6 +64,40 @@ from core.config import ICON
 from core.logger_setup import init_logging
 from core.logging_settings import LoggingSettings
 from core.models import Data
+# Ensure VLC (libvlc) can be found in frozen builds before importing Player
+if getattr(sys, "frozen", False):
+    try:
+        exe_dir = os.path.dirname(sys.executable)
+        candidate_libs = [
+            os.path.join(exe_dir, "libvlc.dll"),
+            os.path.join(exe_dir, "libs", "win", "libvlc.dll"),
+        ]
+        candidate_plugins = [
+            os.path.join(exe_dir, "plugins"),
+            os.path.join(exe_dir, "libs", "win", "plugins"),
+        ]
+        lib_path = next((p for p in candidate_libs if os.path.exists(p)), None)
+        plugins_path = next((p for p in candidate_plugins if os.path.isdir(p)), None)
+
+        # Prepend likely dirs to PATH and DLL search
+        dll_dirs = [exe_dir, os.path.join(exe_dir, "libs", "win")]
+        for d in dll_dirs:
+            if os.path.isdir(d):
+                os.environ["PATH"] = d + os.pathsep + os.environ.get("PATH", "")
+                try:
+                    if hasattr(os, "add_dll_directory"):
+                        os.add_dll_directory(d)
+                except Exception:
+                    pass
+
+        if lib_path:
+            os.environ.setdefault("PYTHON_VLC_LIB_PATH", lib_path)
+        if plugins_path:
+            os.environ.setdefault("PYTHON_VLC_MODULE_PATH", plugins_path)
+            os.environ.setdefault("VLC_PLUGIN_PATH", plugins_path)
+    except Exception:
+        # Fail silently; Player will fall back to system VLC detection
+        pass
 from core.player import Player
 from core.settings import _auto_restore_last
 from core.ui_settings import UISettings

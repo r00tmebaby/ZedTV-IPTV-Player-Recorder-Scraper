@@ -183,7 +183,3 @@ def _fmt_formats(ui: dict, limit: int = 4) -> str:
     if not fmt:
         return "-"
     return ",".join(fmt[:limit]) + (f" +{len(fmt)-limit}" if len(fmt) > limit else "")
-
-
-# Functions from xtream and video_utils are imported at top and re-exported
-# No need to redefine them here

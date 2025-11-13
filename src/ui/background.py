@@ -7,6 +7,7 @@ This module handles displaying and clearing background images on the video canva
 import logging
 from pathlib import Path
 from typing import Any, Optional
+import sys
 
 from PIL import Image, ImageTk
 
@@ -43,7 +44,8 @@ class BackgroundManager:
         Returns:
             Path to background.jpg file
         """
-        path = Path(__file__).parent.parent / "data" / "thumbnails" / "background.jpg"
+        base = Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent.parent
+        path = base / "data" / "thumbnails" / "background.jpg"
         log.debug("Background image path: %s", path)
         return path
 

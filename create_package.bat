@@ -1,8 +1,11 @@
 @echo off
 REM Create distribution ZIP package
 
-REM Extract version from __version__.py using Python
-for /f "delims=" %%i in ('.venv\Scripts\python.exe -c "import sys; sys.path.insert(0, 'src'); from __version__ import __version__; print(__version__)"') do set VERSION=%%i
+rem ============================================================
+rem VERSION CONFIGURATION - Update this when releasing new version
+rem ============================================================
+set "VERSION=2.0.0"
+rem ============================================================
 
 echo ========================================
 echo Creating Distribution Package
@@ -13,7 +16,6 @@ echo.
 
 if not exist "dist\ZedTV-IPTV-Player\ZedTV-IPTV-Player.exe" (
     echo ERROR: Executable not found! Run build.bat first.
-    pause
     exit /b 1
 )
 
@@ -185,5 +187,4 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-pause
 

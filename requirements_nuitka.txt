@@ -1,0 +1,4 @@
+requests
+pydantic
+httpx[http2]
+Pillow>=10.0.0
