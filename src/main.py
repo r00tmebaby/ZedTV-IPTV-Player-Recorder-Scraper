@@ -9,9 +9,11 @@ import sys as _sys
 import os as _os
 
 
-def _write_startup_error(exc_type, exc, tb):
+def _write_startup_error(exc_type, exc, tb) -> None:
     try:
-        import traceback, datetime
+        import traceback
+        import datetime
+
         base_dir = _os.path.dirname(_sys.executable) if getattr(_sys, "frozen", False) else _os.getcwd()
         log_path = _os.path.join(base_dir, "startup_error.log")
         with open(log_path, "a", encoding="utf-8") as f:
@@ -49,6 +51,7 @@ def _write_startup_error(exc_type, exc, tb):
         pass
 
 _sys.excepthook = _write_startup_error
+
 
 # Now import the rest of the app
 import asyncio
