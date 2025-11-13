@@ -8,59 +8,73 @@ ZeDTV is an all-in-one IPTV toolkit: scrape & browse channels, play them, build 
 
 ---
 
-## What's New (v1.4)
-- **Xtream Codes / Xtream UI integration**
-  - **Add Account** wizard (test & save credentials).
-  - **Accounts…** manager with **Use / Details / Delete / Refresh Snapshot**.
-  - Builds **rich M3U** (Live + VOD) with logos, ratings, release year, plots, directors.
-  - **Snapshot caching**: full API reply saved locally for instant table rendering without re-hitting the server.
-- **VLC Settings Configuration**
-  - Adjustable network buffering (reduce lag/stuttering)
-  - Hardware acceleration settings (GPU decoding)
-  - Audio/video output selection
-  - Deinterlacing and advanced options
-- **Improved M3U Parsing**
-  - Exact category matching (no false positives)
-  - Better error handling with debugging info
-  - Instant search filtering (no search button needed)
-- **Recording Fixed**
-  - Proper VLC sout format for reliable recording
-  - Records to MP4 while displaying video
-  - Safe Windows filenames with timestamp
-- **Session restore**
-  - Remembers and **autoloads your last used account or M3U** on startup.
-- **Quality-of-life**
-  - Category & channel search with instant filtering.
-  - Context menu: **Full Screen / Record / Play in VLC**.
-  - Safer filenames for recordings; better Windows path handling.
-- **Performance**
-  - **Fast startup**: 1-2 seconds (folder-based build, not single-file)
-  - Bundled VLC libraries (no system VLC needed for playback)
-  - 105 unit tests ensuring reliability
-- **Idle Background Canvas**
-  - Shows `background.jpg` (from `src/data/thumbnails/`) on the video canvas when no video is playing or after Stop.
+## What's New (v1.5)
+- **Major UI Overhaul**
+  - Clean, modern tabbed interface for all settings windows
+  - Settings organized into logical groups (no more endless scrolling!)
+  - Professional spacing, padding, and button alignment throughout
+  - Reorganized menus - removed ugly separators, added dedicated Logs menu
+  - Larger fonts and better readability across the board
+  
+- **UI Settings** (tabbed)
+  - **Theme tab**: 70+ color themes with live preview
+  - **Fonts tab**: Customize font family and sizes for all UI elements
+  - **Presets tab**: One-click font size presets (Small/Medium/Large/XL)
+  
+- **VLC Settings** (tabbed)
+  - **Network tab**: Buffer settings for smooth streaming
+  - **Video & Audio tab**: Hardware acceleration, output options, volume control
+  - **Advanced tab**: Performance tweaks and maintenance options
+  
+- **Logging Settings**
+  - Configure log levels, file rotation, retention policies
+  - Mirror logs to console for debugging
+  - Clean, organized interface with helpful descriptions
+  
+- **Fixed Features**
+  - IP Info now works properly with Refresh button
+  - Better error handling with user-friendly messages
+  - All settings windows use consistent, polished layouts
+  
+- **Previous Features (v1.4)**
+  - Xtream Codes integration with account management
+  - VLC player settings (network buffering, hardware acceleration)
+  - Session restore - remembers your last account/M3U
+  - Recording to MP4 with live preview
+  - Fast startup (1-2 seconds)
+  - 113 unit tests ensuring reliability
 
 ---
 
 ## Features
-- **Xtream (Xtream Codes / Xtream UI)**
-  - Add/test & save accounts to `xtream_accounts.json`.
-  - Accounts table shows **Status, Connections, Expiry, Trial, Formats** (from cached snapshot).
-  - **Refresh Snapshot** to re-pull server/user info and update the table.
-  - Generates `xtream_<username>.m3u` and an in-memory catalog for enriched channel/movie metadata.
-- **Session Memory**
-  - Persists last choice (account **or** M3U) in `app_settings.json` and auto-restores it next launch.
-- **IPTV Scraper**
-  - Retrieve and parse IPTV streams; extract rating/year from EXTINF or the Xtream catalog.
-- **Integrated Player**
-  - In-app playback via bundled `libs/player`.
-  - Right-click a row for **Full Screen**, **Record** (MP4 to `records/`), or **Play in VLC** externally.
-- **M3U List Creator**
-  - Generate & manage M3U playlist files from selections.
-- **Simple GUI**
-  - A user-friendly interface built with PySimpleGUI.
-- **Cross-Platform Support**
-  - Linux, macOS, and Windows.
+- **Modern Tabbed Interface**
+  - Settings organized in tabs for easy navigation
+  - Professional UI with proper spacing and alignment
+  - 70+ themes to choose from with live preview
+  - Customizable fonts and sizes across the entire app
+  
+- **Xtream Codes Support**
+  - Add/manage multiple accounts with snapshots
+  - Auto-generate enriched M3U playlists
+  - View account status, expiry, connection limits
+  - Refresh snapshots to update server info
+  
+- **Smart Player**
+  - In-app playback with bundled VLC libraries
+  - Configurable buffering and hardware acceleration
+  - Record to MP4 while watching
+  - Right-click menu for Full Screen/Record/External VLC
+  
+- **Easy to Use**
+  - Auto-restore last session (account or M3U file)
+  - Instant search filtering for categories and channels
+  - Custom M3U playlist creator
+  - Background image when idle
+  
+- **Cross-Platform**
+  - Works on Windows, macOS, and Linux
+  - Fast startup (1-2 seconds)
+  - Comprehensive logging with configurable levels
 
 ---
 
@@ -95,13 +109,13 @@ ZeDTV is an all-in-one IPTV toolkit: scrape & browse channels, play them, build 
 ## Installation
 
 ### Option 1: Windows Executable (Recommended)
-1. **Download** `ZedTV-IPTV-Player-v1.4.zip` from releases
+1. **Download** `ZedTV-IPTV-Player-v1.5.zip` from releases
 2. **Extract** all files to a folder
 3. **Run** `ZedTV-IPTV-Player.exe`
 
 **Note:** Keep all files together! The .exe needs the `_internal` folder and `libs` folder to work.
 
-**Startup time:** 1-2 seconds (much faster than single-file builds!)
+**Startup time:** 1-2 seconds (blazing fast!)
 
 ### Option 2: Run from Source
 
@@ -132,15 +146,16 @@ ZeDTV is an all-in-one IPTV toolkit: scrape & browse channels, play them, build 
 
 ## Directory Structure
 ```
+data/                    # User data and configuration (gitignored - private)
 records/                 # MP4 recordings
-xtream_accounts.json     # Saved Xtream accounts (+ snapshots)
-app_settings.json        # Last used account/M3U for auto-restore
-xtream_<username>.m3u    # Generated M3U cache per Xtream account
-main.py                  # App entry point
-libs/
-  player.py              # Player backend wrapper
-programs/                # Additional modules
+xtream_accounts.json     # Saved Xtream accounts (gitignored - private)
+src/
+  main.py                # App entry point
+  libs/
+    player.py            # Player backend wrapper
 ```
+
+**Note:** The `data/` folder and `xtream_accounts.json` contain private information and are excluded from version control.
 
 ---
 
@@ -166,6 +181,14 @@ programs/                # Additional modules
 - Double-click or right-click for **Full Screen / Record / Play in VLC**.  
 - **Record** writes MP4 files to the `records/` directory.
 - When idle (no playback), the video canvas shows the placeholder `background.jpg`.
+
+### Customize Your Experience
+- **Settings → UI Settings**: Choose your theme, customize fonts, apply quick presets
+- **Settings → VLC Settings**: Adjust buffering, enable hardware acceleration, tweak performance
+- **Settings → Logging Settings**: Configure log levels, rotation, and retention
+- **Settings → IP Info**: View your IP address and location (with refresh)
+- **Logs → View Current Log**: See real-time application logs
+- **Logs → Open Logs Folder**: Access all saved log files
 
 ### Create a Custom List
 - **File → Custom List** to save the currently selected items into a new M3U.

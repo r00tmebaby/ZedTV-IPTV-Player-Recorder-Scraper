@@ -135,3 +135,13 @@ data/*.json
 # - Ignore any m3u playlist files
 **/*.m3u
 **/*.m3u8
+
+# Private user data - NEVER commit these
+data/
+src/data/
+xtream_accounts.json
+# Keep only the background image from src/data/thumbnails
+!src/data/thumbnails/
+!src/data/thumbnails/*.jpg
+!src/data/thumbnails/*.png
+
