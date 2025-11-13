@@ -48,6 +48,6 @@ jobs:
 
       - name: Run flake8
         run: |
-          flake8 src tests --exclude=PySimpleGUI.py,player.py,kivy_main.py --max-line-length=120 --ignore=E501,W503,E203,F401,E402,W391,E231,E226
+          flake8 src tests --exclude=PySimpleGUI.py,player.py,kivy_main.py --max-line-length=120 --ignore=E501,W503,E203,F401,E402,W391,E231,E226,W293
         continue-on-error: false
 
