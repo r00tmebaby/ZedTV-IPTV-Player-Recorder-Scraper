@@ -50,8 +50,8 @@ def _write_startup_error(exc_type, exc, tb) -> None:
     except Exception:
         pass
 
-_sys.excepthook = _write_startup_error
 
+_sys.excepthook = _write_startup_error
 
 # Now import the rest of the app
 import asyncio
