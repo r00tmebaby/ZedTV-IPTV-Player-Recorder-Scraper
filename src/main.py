@@ -1,295 +1,299 @@
+"""
+Main application entry point for ZedTV IPTV Player.
+
+This module orchestrates the application initialization and main event loop.
+"""
 import asyncio
 import ctypes
-import os.path
-import re
-from pathlib import Path
-from sys import platform as platform
-import requests
+import logging
+from typing import Optional
 
-from account import _add_account_window, _choose_account_window
-from config import ICON
-from layout import sg, layout
-import player
-from models import Data, IpModel, IPTVFileType
-from settings import (
-    _remember_last_m3u,
-    _remember_last_account,
-    _auto_restore_last,
-    _load_xtream_into_app,
-)
-from app import (
-    get_categories,
-    _rows,
-    generate_list,
-    get_selected,
-    _launch_vlc_external,
-    _build_record_sout,
-)
+from __version__ import __version__, FULL_VERSION_STRING, APP_NAME
+from core.config import ICON
+from ui.layout import sg, build_layout
+from core.models import Data
+from core.settings import _auto_restore_last
+from core.app import get_categories
+from core.vlc_settings import VLCSettings
+from core.ui_settings import UISettings
+from core.logging_settings import LoggingSettings
+from core.logger_setup import init_logging
+from core.player import Player
+from ui.background import BackgroundManager
+from ui.window_manager import WindowManager
+from ui.splash_screen import SplashScreen
+from ui.event_handlers import EventHandler
+from ui.channel_handler import ChannelHandler
+from utils.playback import play_media, stop_playback
+from utils.epg_loader import load_epg_async
+from utils.search_handler import SearchHandler
 
-user32 = ctypes.windll.user32
+# Module logger (initialized after logging setup)
+log: Optional[logging.Logger] = None
 
 
-async def main():
-    sg.theme("DarkTeal6")
-    sg.set_options(element_padding=(0, 0))
+async def main() -> None:
+    """
+    Main application entry point and event loop.
+    
+    Initializes all components, creates UI windows, and runs the main event loop.
+    """
+    global log
+    
+    # Initialize logging first
+    logging_settings = LoggingSettings()
+    app_logger = init_logging(logging_settings.settings)
+    log = app_logger.getChild("main")
+    log.info("="*60)
+    log.info("%s v%s starting", APP_NAME, __version__)
+    log.info("="*60)
+    log.debug("Application main() starting")
+
+    # Initialize UI settings and theme
+    ui_settings = UISettings()
+    ui_settings.apply_theme()
+    fonts = ui_settings.get_all_fonts()
+    sg.set_options(font=fonts["normal"], button_element_size=(10, 1), element_padding=(0, 0))
+    log.debug("UI settings and theme applied")
+
+    # Load initial categories
     Data.categories = get_categories()
+    log.info("Loaded %d categories on startup", len(Data.categories or []))
 
-    async def play(media_play_link: str, full_screen: bool = False) -> None:
+    # EPG will be loaded in background after UI is ready
+    epg_loading_started = False
 
-        if Player.players is not None:
-            Player.players.stop()
+    # Validate Pillow version
+    try:
+        import PIL
+        from PIL import Image as _Img
+        ver = getattr(PIL, '__version__', 'unknown')
+        if tuple(int(x) for x in ver.split('.')[:2]) < (10, 0):
+            log.warning("Pillow version %s < 10.0.0 - consider upgrading", ver)
+        else:
+            log.debug("Pillow version OK: %s", ver)
+    except Exception as e:
+        log.warning("Could not validate Pillow version: %s", e)
 
-        Player.players.set_media(media_play_link)
+    # Initialize VLC settings
+    vlc_settings = VLCSettings()
+    log.debug("VLC settings initialized")
 
-        Player.players.set_xwindow(0)
-        Player.players.set_hwnd(0)
+    # Show splash screen
+    splash = SplashScreen()
+    splash.show()
 
-        if not full_screen:
-            if platform.startswith("linux"):
-                Player.players.set_xwindow(
-                    window["_canvas_video_"].Widget.winfo_id()
-                )
-            else:
-                Player.players.set_hwnd(
-                    window["_canvas_video_"].Widget.winfo_id()
-                )
+    # Build main layout
+    main_layout, _, _ = build_layout(ui_settings)
+    log.debug("Main layout built")
 
-        Player.players.play()
-
+    # Create main window
+    splash.update_progress(40, "Creating main window...")
+    screen_width = ctypes.windll.user32.GetSystemMetrics(0)
+    
     window = sg.Window(
-        "ZED-TV IPTV Scraper @r00tme v1.4",
-        layout,
+        f"ZED-TV IPTV Player v{__version__}",
+        main_layout,
         icon=ICON,
-        resizable=True,
+        resizable=False,
         return_keyboard_events=True,
         use_default_focus=True,
-        size=(1000, 800),
-        location=(user32.GetSystemMetrics(0) / 3.3, 20),
+        size=(690, 450),
+        location=(screen_width // 3, 40),
     ).finalize()
+    log.info("Main window created")
+
+    # Create window manager and child windows
+    splash.update_progress(50, "Creating panels...")
+    window_manager = WindowManager(window)
+    window_manager.create_category_window(ui_settings)
+    splash.update_progress(60, "Creating channel panel...")
+    window_manager.create_channel_window(ui_settings)
+    splash.update_progress(70)
+    
+    # Setup window synchronization
+    window_manager.setup_window_sync()
+    window_manager.bind_search_entries()
+    window_manager.dock_panels()
+    log.debug("Window manager configured")
+
+    # Auto-restore last session
+    splash.update_progress(80, "Restoring last session...")
     try:
-        _auto_restore_last(window)
-    except Exception:
-        pass
+        _auto_restore_last(window, window_manager.category_window)
+        log.debug("Auto-restore completed")
+    except Exception as e:
+        log.debug("Auto-restore failed: %s", e)
 
-    class Player:
-        vlc_instance = player.Instance(
-            "streamlink --width=200 --aout=directsound"
-        )
-        players = vlc_instance.media_player_new()
+    # Close splash screen
+    splash.close()
 
+    # Initialize Player
+    Player.initialize(vlc_settings)
+    log.info("Player initialized")
+    
+    # Check if using dummy VLC instance and notify user
+    if Player.is_dummy_instance():
+        try:
+            sg.popup_error(
+                "VLC (libvlc) could not be initialized. In-app playback will be disabled.\n\n"
+                "To enable playback:\n"
+                "• Install VLC, or\n"
+                "• Set PYTHON_VLC_LIB_PATH to libvlc.dll and PYTHON_VLC_MODULE_PATH to VLC plugins folder, or\n"
+                "• Use 'Play in VLC' to launch external VLC.",
+                keep_on_top=True
+            )
+        except Exception as e:
+            log.error("Failed to show VLC error popup: %s", e)
+
+    # Initialize background manager
+    background_mgr = BackgroundManager(window["_canvas_video_"])
+    background_mgr.show_background(Player)
+    log.debug("Background manager initialized")
+
+    # Initialize handlers
+    event_handler = EventHandler()
+    channel_handler = ChannelHandler()
+    search_handler = SearchHandler()
+    log.debug("Event handlers initialized")
+
+    # Create playback callback wrappers
+    async def play(media, fullscreen=False):
+        """Play media wrapper."""
+        await play_media(media, fullscreen, Player, window,
+                        window["_canvas_video_"], background_mgr.clear_background)
+    
+    def stop():
+        """Stop playback wrapper."""
+        stop_playback(Player, lambda: background_mgr.show_background(Player))
+
+    # Main event loop
+    log.info("Entering main event loop")
+    
     while True:
-        event, values = window.read()
+        # Read events from all windows
+        active_window, event, values = sg.read_all_windows(timeout=100)
 
-        if event in (sg.WIN_CLOSED, "Exit"):
-            break
-        if event == "About":
-            sg.popup(
-                "IPTV Player-Scraper & r00tme",
-                "1.4 Released on 22.09.2025",
-                no_titlebar=True,
-                grab_anywhere=True,
-                keep_on_top=True,
-            )
-        elif event == "Open":
-            Data.filename = sg.popup_get_file(
-                message="file to open",
-                file_types=IPTVFileType.all_types(),
-                default_path=os.getcwd(),
-                no_window=True,
-            )
-            Data.categories = get_categories()
-            window["_table_countries_"].update(_rows(Data.categories))
-        elif event == "Open":
-            Data.filename = sg.popup_get_file(
-                message="file to open",
-                default_path=os.getcwd(),
-                file_types=IPTVFileType.all_types(),
-                no_window=True,
-            )
-            if Data.filename:
-                Data.categories = get_categories()
-                window["_table_countries_"].update(_rows(Data.categories))
-                _remember_last_m3u(Data.filename)
-        elif (
-            event == "Custom List"
-            and Data.filename
-            and values["_table_countries_"]
-        ):
-            generate_window = sg.Window(
-                "IP Address Info",
-                layout=[
-                    [
-                        sg.SaveAs(
-                            "Save as",
-                            target="_file_",
-                            key="_file_to_be_generated_",
-                        ),
-                        sg.I(key="_file_", disabled=True),
-                        sg.B("Create", key="_create_list_"),
-                    ]
-                ],
-                icon=ICON,
-            ).finalize()
-            while True:
-                generate_event, generate_values = generate_window.read()
-                if generate_event in (sg.WIN_CLOSED, "Exit"):
-                    break
-                if (
-                    Path(generate_values["_file_to_be_generated_"])
-                    and generate_event == "_create_list_"
-                ):
-                    asyncio.ensure_future(
-                        generate_list(
-                            values=values,
-                            categories=Data.categories,
-                            new_file=generate_values["_file_to_be_generated_"],
-                            do_file=True,
-                        ),
-                        loop=asyncio.get_event_loop(),
-                    )
-                    sg.popup_ok(
-                        f'Custom list {generate_values["_file_to_be_generated_"]} has been created',
-                        no_titlebar=True,
-                    )
-        # --- Xtream menu ---
-        elif event == "Add Account":
-            acc = _add_account_window()
-            if acc:
-                Data.xtream_account = acc
-                _remember_last_account(acc.get("name") or acc["username"])
-                _load_xtream_into_app(
-                    window, acc["base"], acc["username"], acc["password"]
-                )
-                sg.popup("Xtream list loaded.", keep_on_top=True)
+        # Normalize menu event text (strip '&' accelerators)
+        ev = event.replace('&', '') if isinstance(event, str) else event
 
-        elif event == "Accounts...":
-            choice = _choose_account_window()
-            if choice and choice[0] == "use":
-                _, name, acc = choice
-                Data.xtream_account = {"name": name, **acc}
-                _remember_last_account(name)
-                _load_xtream_into_app(
-                    window, acc["base"], acc["username"], acc["password"]
-                )
-                sg.popup(f"Using account: {name}", keep_on_top=True)
+        # Start EPG loading in background after first event loop
+        if not epg_loading_started:
+            epg_loading_started = True
+            try:
+                asyncio.create_task(load_epg_async(Data))
+                log.debug("EPG background loading started")
+            except Exception as e:
+                log.error("Failed to start EPG background task: %s", e)
 
-        elif (
-            event == "Reload from Current" and Data.xtream_account is not None
-        ):
-            acc = Data.xtream_account
-            if acc:
-                _load_xtream_into_app(
-                    window, acc["base"], acc["username"], acc["password"]
-                )
-            else:
-                sg.popup_error(
-                    "No current Xtream account. "
-                    "Use Xtream → Add Account first.",
-                    keep_on_top=True,
-                )
-
-        elif event == "IP Info":
-            ipinfo_layout = [
-                [
-                    sg.Col(
-                        [
-                            [
-                                sg.T(
-                                    key="_ip_address_info_",
-                                    text=IpModel(**Data.ip_info).get_results,
-                                )
-                            ],
-                        ],
-                        expand_y=True,
-                        expand_x=True,
-                    ),
-                ]
-            ]
-            ipinfo_window = sg.Window(
-                "IP Address Info",
-                ipinfo_layout,
-                icon="media/ico.ico",
-                size=(300, 150),
-            )
-
-            while True:
-                ipinfo_event, ipinfo_values = ipinfo_window.read()
-                if ipinfo_event in (sg.WIN_CLOSED, "Exit"):
-                    break
-                try:
-                    Data.ip_info = requests.get("http://ipinfo.io/json").json()
-                except ConnectionError:
-                    continue
-                ipinfo_window["_ip_address_info_"].Update(
-                    IpModel(**Data.ip_info).get_results
-                )
-
-        elif event == "_table_countries_" and Data.categories:
-            Data.selected_list = await generate_list(values, Data.categories)
-            window["_iptv_content_"].update(await get_selected())
-        elif event == "Stop":
-            Player.players.stop()
-        elif (
-            event in ["_iptv_content_", "Record", "Full Screen", "Play in VLC"]
-            and len(values["_iptv_content_"]) == 1
-        ):
-            media_link = [i.split("\n")[1] for i in Data.selected_list][
-                values["_iptv_content_"][0]
-            ]
-            # Extract channel/movie title from EXTINF
-            title = re.findall(
-                r'tvg-name="(.*?)"',
-                [i.split("\n")[0] for i in Data.selected_list][
-                    values["_iptv_content_"][0]
-                ],
-            )[0].replace("|", "")
-
-            if event == "Play in VLC":
-                _launch_vlc_external(media_link)
-                Player.players.stop()
+        if ev == sg.TIMEOUT_KEY:
+            continue
+        
+        # Track channel table clicks
+        if isinstance(event, tuple):
+            event_handler.handle_channel_table_click(event)
+            channel_handler.last_channel_idx = event_handler.last_channel_idx
+        
+        # Handle exit from fullscreen
+        if ev == "__EXIT_FULLSCREEN__":
+            log.debug("Exiting fullscreen")
+            Player.exit_fullscreen_window(window, window["_canvas_video_"],
+                                         lambda: background_mgr.show_background(Player))
+            continue
+        
+        # Handle search filters
+        if ev == "__KEY_FILTER__":
+            try:
+                field, text = values[event]
+                search_handler.handle_search_event(field, text, Data,
+                                                   window_manager.category_window,
+                                                   window_manager.channel_window,
+                                                   Player)
+            except Exception as e:
+                log.error("Key filter handling failed: %s", e, exc_info=True)
+            continue
+        
+        # Handle window show events
+        if ev == "Show Categories" and not window_manager.category_visible:
+            log.info("Showing category window")
+            window_manager.create_category_window(ui_settings)
+            window_manager.bind_search_entries()
+            window_manager.dock_panels()
+            continue
+        
+        if ev == "Show Channels" and not window_manager.channel_visible:
+            log.info("Showing channel window")
+            window_manager.create_channel_window(ui_settings)
+            window_manager.bind_search_entries()
+            window_manager.dock_panels()
+            continue
+        
+        if ev == "Restore Layout":
+            log.info("Restoring layout")
+            window_manager.restore_layout(ui_settings)
+            continue
+        
+        # Handle window close events
+        if ev in (sg.WIN_CLOSED, "Exit"):
+            log.info("Exit triggered from window=%s", getattr(active_window, 'Title', 'main'))
+            if active_window == window:
+                break
+            elif active_window == window_manager.category_window:
+                window_manager.close_category_window()
                 continue
+            elif active_window == window_manager.channel_window:
+                window_manager.close_channel_window()
+                continue
+        
+        # Menu events
+        if ev == "About":
+            event_handler.handle_about()
+        elif ev == "How to Use":
+            event_handler.handle_help()
+        elif ev == "Open Logs Folder":
+            event_handler.handle_open_logs_folder()
+        elif ev == "Logging Settings":
+            event_handler.handle_logging_settings(logging_settings)
+        elif ev == "View Current Log":
+            event_handler.handle_view_current_log()
+        elif ev == "Open":
+            event_handler.handle_open_playlist(window_manager)
+        elif ev == "Custom List" and Data.filename:
+            await event_handler.handle_custom_list(values)
+        elif ev == "Add Account":
+            event_handler.handle_add_account(window_manager)
+        elif ev == "Accounts...":
+            event_handler.handle_choose_account(window_manager)
+        elif ev == "Reload from Current" and Data.xtream_account is not None:
+            event_handler.handle_reload_account(window_manager)
+        elif ev == "UI Settings":
+            if event_handler.handle_ui_settings(ui_settings):
+                break  # Exit for restart
+        elif ev == "VLC Settings":
+            event_handler.handle_vlc_settings(Player.settings)
+        elif ev == "IP Info":
+            event_handler.handle_ip_info()
+        elif ev == "_table_countries_" and Data.categories:
+            await channel_handler.handle_category_selection(values, window_manager, Player)
+        elif ev == "Stop":
+            stop()
+        elif ev in ["_iptv_content_", "Record", "Full Screen", "Play in VLC"]:
+            await channel_handler.handle_channel_playback(
+                ev, values, window_manager.channel_window, Player, play
+            )
+        
+        # Handle keyboard shortcuts
+        if event is not None and event is not sg.TIMEOUT_KEY:
+            if isinstance(event, str) and len(event) == 1 and ord(event) == 27:  # ESC
+                if Player.is_fullscreen:
+                    Player.exit_fullscreen_window(window, window["_canvas_video_"],
+                                                 lambda: background_mgr.show_background(Player))
+                    log.debug("ESC pressed - exited fullscreen")
+                else:
+                    stop()
+                    log.debug("ESC pressed - playback stopped")
 
-            if event == "Record":
-                sout = _build_record_sout(title)
-                Data.media_instance = Player.vlc_instance.media_new(
-                    media_link, sout
-                )
-            else:
-                # just play (normal or full screen)
-                Data.media_instance = Player.vlc_instance.media_new(media_link)
-            if event == "Full Screen":
-                await asyncio.ensure_future(play(Data.media_instance, True))
-            else:
-                await asyncio.ensure_future(play(Data.media_instance))
-
-        elif event == "_cat_search_btn" and Data.filename:
-            if values["_cat_search_"]:
-                Data.categories = get_categories(values["_cat_search_"])
-                window["_table_countries_"].update(_rows(Data.categories))
-            else:
-                Data.categories = get_categories()
-                window["_table_countries_"].update(_rows(Data.categories))
-
-        elif event == "_ch_search_btn" and Data.filename:
-            if values["_ch_search_"]:
-                temp_list = []
-                Data.selected_list = await generate_list(
-                    values, Data.categories
-                )
-                for i, channel in enumerate(await get_selected()):
-                    if values["_ch_search_"].lower() in channel[0].lower():
-                        temp_list.append(Data.selected_list[i])
-                Data.selected_list = temp_list
-                window["_iptv_content_"].update(await get_selected())
-            else:
-                Data.selected_list = await generate_list(
-                    values, Data.categories
-                )
-                window["_iptv_content_"].update(await get_selected())
-        if event is not sg.TIMEOUT_KEY:
-            if len(event) == 1:
-                if ord(event) == 27:
-                    Player.players.stop()
+    log.info("Application exiting - cleanup in progress")
 
 
 if __name__ == "__main__":

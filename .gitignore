@@ -127,3 +127,11 @@ dmypy.json
 programs
 # Pyre type checker
 .pyre/
+
+# Local JSON config files and playlists (do NOT commit private configs or m3u playlists)
+# - Ignore JSON config files in project data folders
+src/data/*.json
+data/*.json
+# - Ignore any m3u playlist files
+**/*.m3u
+**/*.m3u8
