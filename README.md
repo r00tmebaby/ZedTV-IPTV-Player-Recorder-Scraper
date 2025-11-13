@@ -1,4 +1,10 @@
 # ZeDTV - IPTV Scraper, Player, Recorder and M3U List Creator
+
+[![CI](https://github.com/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper/actions/workflows/ci.yml/badge.svg)](https://github.com/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/tests-336%20passed-brightgreen)](https://github.com/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper/actions)
+[![Python](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/downloads/)
+[![License](https://img.shields.io/github/license/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper)](LICENSE)
+
 <img src="MEDIA/1.png" alt="ZeDTV screenshot">
 <img src="MEDIA/2.png" alt="ZeDTV screenshot">
 <img src="MEDIA/3.png" alt="ZeDTV screenshot">
