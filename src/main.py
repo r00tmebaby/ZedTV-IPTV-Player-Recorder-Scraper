@@ -38,13 +38,13 @@ def _write_startup_error(exc_type, exc, tb) -> None:
             pass
         # Best-effort user notice
         try:
-            import ctypes
+            from utils.platform_utils import show_error_dialog
             msg = (
                 "ZedTV failed to start.\n\n"
                 "A startup_error.log was written next to the .exe.\n"
                 "Please share it so we can fix the issue."
             )
-            ctypes.windll.user32.MessageBoxW(None, msg, "ZedTV Startup Error", 0x00000010)
+            show_error_dialog("ZedTV Startup Error", msg)
         except Exception:
             pass
     except Exception:
@@ -53,9 +53,12 @@ def _write_startup_error(exc_type, exc, tb) -> None:
 
 _sys.excepthook = _write_startup_error
 
+# Setup VLC environment before importing the rest of the app
+from utils.vlc_loader import setup_vlc_environment
+setup_vlc_environment()
+
 # Now import the rest of the app
 import asyncio
-import ctypes
 import logging
 import os
 import sys
@@ -176,7 +179,8 @@ async def main() -> None:
 
     # Create main window
     splash.update_progress(40, "Creating main window...")
-    screen_width = ctypes.windll.user32.GetSystemMetrics(0)
+    from utils.platform_utils import get_screen_size
+    screen_width, _ = get_screen_size()
 
     window = sg.Window(
         f"ZED-TV IPTV Player v{__version__}",

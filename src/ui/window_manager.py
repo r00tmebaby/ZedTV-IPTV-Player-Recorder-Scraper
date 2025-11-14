@@ -5,7 +5,6 @@ Handles creation, positioning, and management of multiple windows including
 category, channel, and main windows.
 """
 
-import ctypes
 import logging
 from typing import Any, Optional
 
@@ -85,7 +84,8 @@ class WindowManager:
         """
         log.info("Creating channel window")
         try:
-            screen_width = ctypes.windll.user32.GetSystemMetrics(0)
+            from utils.platform_utils import get_screen_size
+            screen_width, _ = get_screen_size()
             layout = build_channel_panel_layout(ui_settings.get_font("table"))
             window = sg.Window(
                 "",
@@ -114,7 +114,8 @@ class WindowManager:
             y = self.main_window.TKroot.winfo_y()
             w = 690
             h = 700
-            screen_w = ctypes.windll.user32.GetSystemMetrics(0)
+            from utils.platform_utils import get_screen_size
+            screen_w, _ = get_screen_size()
             margin = 6
 
             # Position category window to the left
