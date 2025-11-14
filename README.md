@@ -15,6 +15,10 @@
 <img src="MEDIA/9.png" alt="ZeDTV screenshot">
 <img src="MEDIA/10.png" alt="ZeDTV screenshot">
 
+
+## Overview
+ZeDTV is an all-in-one IPTV toolkit: scrape & browse channels, play them, build your own M3U lists, and (new!) connect directly to **Xtream Codes / Xtream UI** portals with account management and offline snapshots. The GUI (PySimpleGUI) keeps things simple while still exposing power features like metadata extraction and one-click playback/recording.
+
 ## Platform Support
 ### ❗ Current Status
 This project **supports Windows only**.  
@@ -25,10 +29,6 @@ I also don’t currently have macOS or Linux environments available for developm
 Using virtualization is possible, but it slows down development significantly and makes the workflow unpleasant, so cross-platform support isn’t planned for now.
 
 **Contributions toward Linux/macOS support are very welcome.**
-
-## Overview
-ZeDTV is an all-in-one IPTV toolkit: scrape & browse channels, play them, build your own M3U lists, and (new!) connect directly to **Xtream Codes / Xtream UI** portals with account management and offline snapshots. The GUI (PySimpleGUI) keeps things simple while still exposing power features like metadata extraction and one-click playback/recording.
----
 
 ## What's New (v1.5)
 - **Major UI Overhaul**
