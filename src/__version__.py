@@ -10,7 +10,7 @@ __version_info__ = tuple(int(x) for x in __version__.split("."))
 
 # Application metadata
 APP_NAME = "ZedTV IPTV Player"
-APP_AUTHOR = "@r00tme"
+APP_AUTHOR = "@r00tmebaby"
 APP_YEAR = "2025"
 
 # Version string for display

@@ -109,7 +109,7 @@ echo.
 echo.
 echo CREDITS
 echo -------
-echo Developer: @r00tme
+echo Developer: @r00tmebaby
 echo Version: %VERSION%
 echo Release Date: %date%
 echo.
@@ -143,7 +143,7 @@ echo Creating LICENSE file...
 (
 echo ZedTV IPTV Player
 echo.
-echo Copyright ^(c^) 2024 @r00tme
+echo Copyright ^(c^) 2024 @r00tmebaby
 echo.
 echo This software is provided "as is", without warranty of any kind,
 echo express or implied, including but not limited to the warranties
