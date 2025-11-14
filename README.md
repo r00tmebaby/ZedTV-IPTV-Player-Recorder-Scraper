@@ -25,10 +25,6 @@ This project **supports Windows only**.
 It relies on Windows-specific components such as `ctypes.windll.user32` and `libvlc.dll`.  
 Although many parts of the codebase (including the GUI) are technically portable, the media backend currently depends on Windows-only libraries, so macOS and Linux are **not supported** at this time.
 
-I also don’t currently have macOS or Linux environments available for development or testing.  
-Using virtualization is possible, but it slows down development significantly and makes the workflow unpleasant, so cross-platform support isn’t planned for now.
-
-**Contributions toward Linux/macOS support are very welcome.**
 
 ## What's New (v1.5)
 - **Major UI Overhaul**
