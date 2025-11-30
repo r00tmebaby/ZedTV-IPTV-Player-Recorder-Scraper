@@ -2,3 +2,5 @@ requests
 pydantic
 httpx[http2]
 Pillow>=10.0.0
+# Exclude Kivy for Nuitka builds as it can cause compilation issues
+# Exclude development tools (black, isort, mypy) for runtime

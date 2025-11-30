@@ -252,6 +252,69 @@ src/
 
 ---
 
+## Development & Building
+
+### Building from Source
+This project now uses **Nuitka** instead of PyInstaller for better performance and faster cold start times.
+
+#### Quick Build (Development)
+```bash
+build_nuitka.bat quick
+```
+- Fast compilation for development iterations
+- No LTO optimization, no progress reporting
+- Good for testing changes quickly
+
+#### Release Build (Production)
+```bash
+build_nuitka.bat release
+```
+- Full optimization with LTO (Link Time Optimization)
+- Progress reporting and build analysis
+- Recommended for distribution
+
+#### Standard Build
+```bash
+build_nuitka.bat
+```
+- Balanced build with LTO but no progress reporting
+- Good for most use cases
+
+#### Complete Build Process
+```bash
+build_all.bat
+```
+- Runs tests, builds with Nuitka, creates packages, generates ZIP
+- One-command solution for full release preparation
+
+### Build Requirements
+- **Python 3.12+** (3.13.5+ or 3.12.x recommended)
+- **Microsoft Visual C++ Build Tools** or Visual Studio
+- **Nuitka** and dependencies (auto-installed by build scripts)
+- Sufficient disk space (Nuitka creates larger intermediate files)
+
+### Build Scripts Overview
+- `build_nuitka.bat` - Main Nuitka build script with options
+- `build_quick.bat` - Quick development build (uses Nuitka now)
+- `build.bat` - Standard build (migrated to Nuitka)
+- `build_all.bat` - Complete build + packaging pipeline
+- `build_pyinstaller_legacy.bat` - Legacy PyInstaller support (if needed)
+
+### Why Nuitka?
+- **Faster cold start**: Compiled Python code loads much quicker than PyInstaller bundles
+- **Better performance**: True compilation vs. interpreter bundling
+- **Smaller runtime footprint**: More efficient memory usage
+- **More reliable**: Less prone to import and dependency issues
+
+### Legacy PyInstaller Support
+If you need to use PyInstaller for any reason:
+```bash
+build_pyinstaller_legacy.bat
+```
+Note: PyInstaller builds are slower to start and less optimized.
+
+---
+
 ## License
 This project is licensed under the [MIT License](LICENSE).
 
