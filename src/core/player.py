@@ -8,13 +8,13 @@ playback control, fullscreen management, and media handling.
 import logging
 import tkinter as tk
 from sys import platform as platform
-from typing import Optional, Any
+from typing import Optional, Any, Callable
 import shutil
 import subprocess
 import os
 
-from media import player
-from core.vlc_settings import VLCSettings
+from .vlc_settings import VLCSettings
+from src.media import player
 
 
 log = logging.getLogger(__name__)
@@ -68,7 +68,7 @@ class _DummyInstance:
         return m
 
 
-def launch_vlc_external(url: str) -> None:
+def launch_vlc_external(url: str, vlc_path: str = None) -> None:
     """
     Launch VLC media player externally with the given URL.
 
@@ -76,17 +76,30 @@ def launch_vlc_external(url: str) -> None:
 
     Args:
         url: Media URL to play
+        vlc_path: Optional custom path to VLC executable
     """
     log.info("Attempting to launch external VLC for URL: %s", url)
     try:
-        exe = shutil.which("vlc")
+        # Check common installation directories if VLC is not in PATH
+        exe = vlc_path or shutil.which("vlc")
+        if not exe:
+            common_paths = [
+                r"C:\\Program Files\\VideoLAN\\VLC\\vlc.exe",
+                r"C:\\Program Files (x86)\\VideoLAN\\VLC\\vlc.exe"
+            ]
+            for path in common_paths:
+                if os.path.exists(path):
+                    exe = path
+                    log.debug("Found VLC executable at common path: %s", exe)
+                    break
+
         if exe:
-            log.debug("Found VLC executable at: %s", exe)
+            log.debug("Using VLC executable at: %s", exe)
             subprocess.Popen([exe, url], shell=False)
             log.info("Successfully launched external VLC")
             return
         else:
-            log.warning("VLC executable not found in PATH")
+            log.warning("VLC executable not found in PATH or common directories")
     except Exception as e:
         log.error("Failed to launch VLC: %s", e)
 
@@ -222,7 +235,7 @@ class Player:
 
             # Create video canvas
             video_canvas = tk.Canvas(top, bg="black", highlightthickness=0)
-            video_canvas.pack(fill=tk.BOTH, expand=True)
+            video_canvas.pack(fill="both", expand=True)
             log.debug("Created video canvas in fullscreen window")
 
             # Bind escape key to exit fullscreen
@@ -263,7 +276,7 @@ class Player:
             log.error("Failed to enter fullscreen window: %s", e, exc_info=True)
 
     @classmethod
-    def exit_fullscreen_window(cls, main_window: Any, canvas_element: Any, show_background_callback: callable) -> None:
+    def exit_fullscreen_window(cls, main_window: Any, canvas_element: Any, show_background_callback: Callable) -> None:
         """
         Exit controlled fullscreen and reattach to the small canvas.
 

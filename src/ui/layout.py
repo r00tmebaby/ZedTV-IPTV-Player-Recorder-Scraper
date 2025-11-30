@@ -51,7 +51,7 @@ def build_channel_panel_layout(table_font):
                 justification="l",
                 expand_y=True,
                 expand_x=True,
-                right_click_menu=["&Menu", ["&Full Screen", "&Record", "&Play in VLC", "&Stop"]],
+                right_click_menu=["&Menu", ["&Full Screen", "&Record", "&Play in VLC", "&Send to Browser", "&Stop"]],
                 bind_return_key=True,
                 enable_click_events=True,
                 size=(55, 40),  # Increased from (45, 50) - wider and shows more rows
@@ -134,6 +134,7 @@ def build_layout(ui_settings=None):
                         "&Full Screen",
                         "&Record",
                         "&Play in VLC",
+                        "&Send to Browser",
                         "&Stop",
                     ],
                 ],

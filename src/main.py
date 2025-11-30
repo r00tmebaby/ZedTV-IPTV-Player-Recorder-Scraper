@@ -363,9 +363,8 @@ async def main() -> None:
             await channel_handler.handle_category_selection(values, window_manager, Player)
         elif ev == "Stop":
             stop()
-        elif ev in ["_iptv_content_", "Record", "Full Screen", "Play in VLC"]:
+        elif ev in ["_iptv_content_", "Record", "Full Screen", "Play in VLC", "Send to Browser"]:
             await channel_handler.handle_channel_playback(ev, values, window_manager.channel_window, Player, play)
-
         # Handle keyboard shortcuts
         if event is not None and event is not sg.TIMEOUT_KEY:
             if isinstance(event, str) and len(event) == 1 and ord(event) == 27:  # ESC
@@ -382,4 +381,9 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
+    # Add the src directory to sys.path
+    directory = os.path.dirname(os.path.abspath(__file__))
+    src_path = os.path.join(directory, "core")
+    sys.path.insert(0, src_path)
+
     asyncio.run(main())

@@ -7,6 +7,7 @@ This module handles channel selection, parsing, and playback initiation.
 import asyncio
 import logging
 import re
+import webbrowser
 from typing import Any, Optional, Tuple
 
 from core.app import _build_record_sout
@@ -155,6 +156,16 @@ class ChannelHandler:
                 log.info("External VLC launched successfully")
             except Exception as e:
                 log.error("Failed to launch external VLC: %s", e, exc_info=True)
+            return
+
+        # Handle sending to browser
+        if event == "Send to Browser":
+            log.info("Opening in browser: %s", media_link)
+            try:
+                webbrowser.open(media_link)
+                log.info("Browser opened successfully")
+            except Exception as e:
+                log.error("Failed to open browser: %s", e, exc_info=True)
             return
 
         # Handle recording
