@@ -45,7 +45,11 @@ class EventHandler:
         try:
             if isinstance(event, tuple) and len(event) >= 3:
                 if event[0] == "_iptv_content_" and "+CLICKED+" in str(event):
-                    clicked_row = int(event[2][0]) if isinstance(event[2], tuple) else None
+                    clicked_row = (
+                        int(event[2][0])
+                        if isinstance(event[2], tuple)
+                        else None
+                    )
                     if clicked_row is not None and clicked_row >= 0:
                         self.last_channel_idx = clicked_row
                         log.debug("Channel table clicked: row=%d", clicked_row)
@@ -94,7 +98,10 @@ class EventHandler:
             changed = _show_logging_settings_window(logging_settings)
             if changed:
                 log.info("Logging settings changed")
-                sg.popup("Logging settings saved. Please restart to apply.", keep_on_top=True)
+                sg.popup(
+                    "Logging settings saved. Please restart to apply.",
+                    keep_on_top=True,
+                )
         except Exception as e:
             log.error("Failed to handle logging settings: %s", e)
 
@@ -120,7 +127,14 @@ class EventHandler:
             ]
             from core.config import ICON
 
-            viewer = sg.Window("Current Log", viewer_layout, icon=ICON, finalize=True, keep_on_top=True, resizable=True)
+            viewer = sg.Window(
+                "Current Log",
+                viewer_layout,
+                icon=ICON,
+                finalize=True,
+                keep_on_top=True,
+                resizable=True,
+            )
 
             def _load_tail():
                 """Load last 500 lines of log file."""
@@ -165,7 +179,10 @@ class EventHandler:
             from core.models import IPTVFileType
 
             path = sg.popup_get_file(
-                message="Select playlist", default_path=os.getcwd(), file_types=IPTVFileType.all_types(), no_window=True
+                message="Select playlist",
+                default_path=os.getcwd(),
+                file_types=IPTVFileType.all_types(),
+                no_window=True,
             )
 
             if path:
@@ -176,12 +193,20 @@ class EventHandler:
                 Data.filename = path
                 Data.categories = get_categories()
 
-                if window_manager.category_visible and window_manager.category_window:
-                    window_manager.category_window["_table_countries_"].update(_rows(Data.categories))
+                if (
+                    window_manager.category_visible
+                    and window_manager.category_window
+                ):
+                    window_manager.category_window["_table_countries_"].update(
+                        _rows(Data.categories)
+                    )
                     log.debug("Category window updated with new playlist")
 
                 _remember_last_m3u(Data.filename)
-                log.info("Playlist loaded successfully: %d categories", len(Data.categories or []))
+                log.info(
+                    "Playlist loaded successfully: %d categories",
+                    len(Data.categories or []),
+                )
             else:
                 log.debug("No playlist selected")
 
@@ -208,7 +233,11 @@ class EventHandler:
                 "Custom List Generator",
                 layout=[
                     [
-                        sg.SaveAs("Save as", target="_file_", key="_file_to_be_generated_"),
+                        sg.SaveAs(
+                            "Save as",
+                            target="_file_",
+                            key="_file_to_be_generated_",
+                        ),
                         sg.I(key="_file_", disabled=True),
                         sg.B("Create", key="_create_list_"),
                     ]
@@ -223,13 +252,20 @@ class EventHandler:
                     log.debug("Custom list generation cancelled")
                     break
 
-                if Path(generate_values["_file_to_be_generated_"]).name and generate_event == "_create_list_":
-                    sel_vals = {"_table_countries_": Data.selected_category_indices or []}
+                if (
+                    Path(generate_values["_file_to_be_generated_"]).name
+                    and generate_event == "_create_list_"
+                ):
+                    sel_vals = {
+                        "_table_countries_": Data.selected_category_indices
+                        or []
+                    }
 
                     if not sel_vals["_table_countries_"]:
                         log.warning("No category selected for custom list")
                         sg.popup_error(
-                            "No category selected. Select one from the Categories window first.", keep_on_top=True
+                            "No category selected. Select one from the Categories window first.",
+                            keep_on_top=True,
                         )
                         continue
 
@@ -237,17 +273,27 @@ class EventHandler:
                     log.info("Generating custom list: %s", output_file)
 
                     await asyncio.ensure_future(
-                        generate_list(values=sel_vals, categories=Data.categories, new_file=output_file, do_file=True),
+                        generate_list(
+                            values=sel_vals,
+                            categories=Data.categories,
+                            new_file=output_file,
+                            do_file=True,
+                        ),
                         loop=asyncio.get_event_loop(),
                     )
 
-                    sg.popup_ok(f"Custom list {output_file} has been created", no_titlebar=True)
+                    sg.popup_ok(
+                        f"Custom list {output_file} has been created",
+                        no_titlebar=True,
+                    )
                     log.info("Custom list created successfully")
 
             generate_window.close()
 
         except Exception as e:
-            log.error("Failed to handle custom list generation: %s", e, exc_info=True)
+            log.error(
+                "Failed to handle custom list generation: %s", e, exc_info=True
+            )
 
     @staticmethod
     def handle_add_account(window_manager):
@@ -255,12 +301,17 @@ class EventHandler:
         log.info("Adding Xtream account")
         try:
             from core.account import _add_account_window
-            from core.settings import _load_xtream_into_app, _remember_last_account
+            from core.settings import (
+                _load_xtream_into_app,
+                _remember_last_account,
+            )
 
             acc = _add_account_window()
 
             if acc:
-                log.info("Account added: %s", acc.get("name") or acc["username"])
+                log.info(
+                    "Account added: %s", acc.get("name") or acc["username"]
+                )
                 Data.xtream_account = acc
                 _remember_last_account(acc.get("name") or acc["username"])
 
@@ -269,7 +320,11 @@ class EventHandler:
                     acc["base"],
                     acc["username"],
                     acc["password"],
-                    window_manager.category_window if window_manager.category_visible else None,
+                    (
+                        window_manager.category_window
+                        if window_manager.category_visible
+                        else None
+                    ),
                 )
 
                 sg.popup("Xtream list loaded.", keep_on_top=True)
@@ -285,7 +340,10 @@ class EventHandler:
         log.info("Choosing Xtream account")
         try:
             from core.account import _choose_account_window
-            from core.settings import _load_xtream_into_app, _remember_last_account
+            from core.settings import (
+                _load_xtream_into_app,
+                _remember_last_account,
+            )
 
             choice = _choose_account_window()
 
@@ -301,7 +359,11 @@ class EventHandler:
                     acc["base"],
                     acc["username"],
                     acc["password"],
-                    window_manager.category_window if window_manager.category_visible else None,
+                    (
+                        window_manager.category_window
+                        if window_manager.category_visible
+                        else None
+                    ),
                 )
 
                 sg.popup(f"Using account: {name}", keep_on_top=True)
@@ -321,17 +383,27 @@ class EventHandler:
             acc = Data.xtream_account
 
             if acc:
-                log.info("Reloading account: %s", acc.get("name") or acc.get("username"))
+                log.info(
+                    "Reloading account: %s",
+                    acc.get("name") or acc.get("username"),
+                )
                 _load_xtream_into_app(
                     window_manager.main_window,
                     acc["base"],
                     acc["username"],
                     acc["password"],
-                    window_manager.category_window if window_manager.category_visible else None,
+                    (
+                        window_manager.category_window
+                        if window_manager.category_visible
+                        else None
+                    ),
                 )
             else:
                 log.warning("No current Xtream account to reload")
-                sg.popup_error("No current Xtream account. Use Xtream → Add Account first.", keep_on_top=True)
+                sg.popup_error(
+                    "No current Xtream account. Use Xtream → Add Account first.",
+                    keep_on_top=True,
+                )
 
         except Exception as e:
             log.error("Failed to reload account: %s", e, exc_info=True)
@@ -379,7 +451,9 @@ class EventHandler:
             if not Data.ip_info:
                 try:
                     log.debug("Fetching IP info from ipinfo.io")
-                    Data.ip_info = requests.get("http://ipinfo.io/json", timeout=5).json()
+                    Data.ip_info = requests.get(
+                        "http://ipinfo.io/json", timeout=5
+                    ).json()
                 except Exception as e:
                     log.warning("Failed to fetch IP info: %s", e)
                     Data.ip_info = {
@@ -401,7 +475,13 @@ class EventHandler:
                 ip_text = "Error: Unable to display IP information\n\nPlease check your internet connection."
 
             ipinfo_layout = [
-                [sg.Text("IP Address Information", font=("Arial", 14, "bold"), pad=((10, 10), (10, 10)))],
+                [
+                    sg.Text(
+                        "IP Address Information",
+                        font=("Arial", 14, "bold"),
+                        pad=((10, 10), (10, 10)),
+                    )
+                ],
                 [sg.HorizontalSeparator()],
                 [
                     sg.Multiline(
@@ -416,9 +496,19 @@ class EventHandler:
                 ],
                 [sg.HorizontalSeparator()],
                 [
-                    sg.Button("Refresh", key="_refresh_", size=(10, 1), pad=((10, 5), (10, 10))),
+                    sg.Button(
+                        "Refresh",
+                        key="_refresh_",
+                        size=(10, 1),
+                        pad=((10, 5), (10, 10)),
+                    ),
                     sg.Push(),
-                    sg.Button("Close", key="_close_", size=(10, 1), pad=((5, 10), (10, 10))),
+                    sg.Button(
+                        "Close",
+                        key="_close_",
+                        size=(10, 1),
+                        pad=((5, 10), (10, 10)),
+                    ),
                 ],
             ]
 
@@ -439,7 +529,9 @@ class EventHandler:
                 if ipinfo_event == "_refresh_":
                     try:
                         log.debug("Refreshing IP info")
-                        Data.ip_info = requests.get("http://ipinfo.io/json", timeout=5).json()
+                        Data.ip_info = requests.get(
+                            "http://ipinfo.io/json", timeout=5
+                        ).json()
                         ip_text = IpModel(**Data.ip_info).get_results
                         ipinfo_window["_ip_address_info_"].update(ip_text)
                         log.debug("IP info refreshed successfully")
@@ -451,8 +543,14 @@ class EventHandler:
                             keep_on_top=True,
                         )
                     except Exception as e:
-                        log.error("Error refreshing IP info: %s", e, exc_info=True)
-                        sg.popup_error(f"An error occurred: {e}", title="Error", keep_on_top=True)
+                        log.error(
+                            "Error refreshing IP info: %s", e, exc_info=True
+                        )
+                        sg.popup_error(
+                            f"An error occurred: {e}",
+                            title="Error",
+                            keep_on_top=True,
+                        )
 
             ipinfo_window.close()
             log.debug("IP info window closed")

@@ -37,7 +37,9 @@ class SearchHandler:
         self.last_ch_search: Dict[str, Any] = {"text": "", "ts": 0}
 
     @staticmethod
-    def filter_categories(search_text: str, data_module: Any, category_window: Any) -> None:
+    def filter_categories(
+        search_text: str, data_module: Any, category_window: Any
+    ) -> None:
         """
         Filter categories based on search text.
 
@@ -52,18 +54,26 @@ class SearchHandler:
         log.debug("filter_categories invoked with text=%r", search_text)
         try:
             t = (search_text or "").strip().lower()
-            base = getattr(data_module, "categories_master", None) or getattr(data_module, "categories", [])
+            base = getattr(data_module, "categories_master", None) or getattr(
+                data_module, "categories", []
+            )
 
             if t:
                 data_module.categories = [c for c in base if t in c.lower()]
-                log.info("Category filter applied: %d matches out of %d", len(data_module.categories), len(base))
+                log.info(
+                    "Category filter applied: %d matches out of %d",
+                    len(data_module.categories),
+                    len(base),
+                )
             else:
                 data_module.categories = list(base)
                 log.debug("Category filter cleared")
 
             if category_window is not None and _rows is not None:
                 try:
-                    category_window["_table_countries_"].update(_rows(data_module.categories))
+                    category_window["_table_countries_"].update(
+                        _rows(data_module.categories)
+                    )
                     log.debug("Category window updated")
                 except Exception:
                     log.exception("Failed to update category window")
@@ -91,14 +101,22 @@ class SearchHandler:
             player_instance: Player instance for accessing master channel list
             debounce_ms: Debounce delay in milliseconds (default: 120)
         """
-        log.debug("filter_channels invoked with text=%r debounce_ms=%s", search_text, debounce_ms)
+        log.debug(
+            "filter_channels invoked with text=%r debounce_ms=%s",
+            search_text,
+            debounce_ms,
+        )
 
         now = time.time()
         txt = (search_text or "").strip().lower()
 
         # Debounce: only process if text changed and enough time has passed
-        if txt == self.last_ch_search["text"] or (now - self.last_ch_search["ts"]) <= (debounce_ms / 1000.0):
-            log.debug("Channel filter debounced (text unchanged or within debounce window)")
+        if txt == self.last_ch_search["text"] or (
+            now - self.last_ch_search["ts"]
+        ) <= (debounce_ms / 1000.0):
+            log.debug(
+                "Channel filter debounced (text unchanged or within debounce window)"
+            )
             return
 
         self.last_ch_search["text"] = txt
@@ -106,14 +124,22 @@ class SearchHandler:
 
         try:
             # Get base channel list
-            base_list: List[Any] = getattr(player_instance, "_channels_master", None) or getattr(data_module, "selected_list", []) or []
+            base_list: List[Any] = (
+                getattr(player_instance, "_channels_master", None)
+                or getattr(data_module, "selected_list", [])
+                or []
+            )
 
             # Get or generate display rows
-            if not getattr(data_module, "rows_cache", None) or len(getattr(data_module, "rows_cache", [])) != len(base_list):
+            if not getattr(data_module, "rows_cache", None) or len(
+                getattr(data_module, "rows_cache", [])
+            ) != len(base_list):
                 # Recompute selected_list and rows
                 data_module.selected_list = base_list
                 if get_selected is None:
-                    log.debug("get_selected not available; skipping row generation")
+                    log.debug(
+                        "get_selected not available; skipping row generation"
+                    )
                     rows = []
                 else:
                     rows = get_selected()
@@ -123,22 +149,36 @@ class SearchHandler:
             # Apply filter
             if txt:
                 # Ensure search_titles_lower exists
-                search_titles_lower = getattr(data_module, "search_titles_lower", None)
+                search_titles_lower = getattr(
+                    data_module, "search_titles_lower", None
+                )
                 if search_titles_lower is None:
                     # Build it from rows if possible
                     search_titles_lower = [(r[0] or "").lower() for r in rows]
                     data_module.search_titles_lower = search_titles_lower
 
-                idxs = [i for i, tval in enumerate(data_module.search_titles_lower) if txt in tval]
+                idxs = [
+                    i
+                    for i, tval in enumerate(data_module.search_titles_lower)
+                    if txt in tval
+                ]
                 data_module.selected_list = [base_list[i] for i in idxs]
 
                 if channel_window is not None:
                     try:
-                        channel_window["_iptv_content_"].update([rows[i] for i in idxs])
+                        channel_window["_iptv_content_"].update(
+                            [rows[i] for i in idxs]
+                        )
                     except Exception:
-                        log.exception("Failed to update channel window with filtered rows")
+                        log.exception(
+                            "Failed to update channel window with filtered rows"
+                        )
 
-                log.info("Channel filter applied: %d matches out of %d", len(idxs), len(base_list))
+                log.info(
+                    "Channel filter applied: %d matches out of %d",
+                    len(idxs),
+                    len(base_list),
+                )
             else:
                 data_module.selected_list = base_list
 
@@ -146,7 +186,9 @@ class SearchHandler:
                     try:
                         channel_window["_iptv_content_"].update(rows)
                     except Exception:
-                        log.exception("Failed to update channel window when clearing filter")
+                        log.exception(
+                            "Failed to update channel window when clearing filter"
+                        )
 
                 log.debug("Channel filter cleared")
 
@@ -181,6 +223,8 @@ class SearchHandler:
             # category filtering is pure and safe to call directly
             self.filter_categories(raw_text, data_module, category_window)
         elif field == "_ch_search_":
-            self.filter_channels(raw_text, data_module, channel_window, player_instance)
+            self.filter_channels(
+                raw_text, data_module, channel_window, player_instance
+            )
         else:
             log.warning("Unknown search field: %s", field)

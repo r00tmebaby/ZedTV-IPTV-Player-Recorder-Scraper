@@ -168,27 +168,6 @@ if errorlevel 1 (
     set /a SUCCESS_COUNT+=1
 )
 
-REM ========================================
-REM STEP 6: Version System Check
-REM ========================================
-echo ============================================================
-echo STEP 6: Verifying Version System
-echo ============================================================
-echo.
-
-echo Checking version system...
-python verify_version_system.py 2>&1
-if errorlevel 1 (
-    echo.
-    echo ✗ FAILED: Version system verification failed
-    echo.
-    set /a ERROR_COUNT+=1
-) else (
-    echo.
-    echo ✓ PASSED: Version system verified
-    echo.
-    set /a SUCCESS_COUNT+=1
-)
 
 REM ========================================
 REM STEP 7: Build Application

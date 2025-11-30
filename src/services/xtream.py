@@ -22,12 +22,19 @@ from core.config import HEADERS
 logger = logging.getLogger("zedtv.xtream")
 
 
-def _normalize_base(host_or_url: str, port: int | None = None, prefer_https: bool = False) -> str:
+def _normalize_base(
+    host_or_url: str, port: int | None = None, prefer_https: bool = False
+) -> str:
     """Return base like http(s)://host:port suitable for Xtream paths.
 
     Handles hostnames, IPv4, IPv6 (with or without brackets), and full URLs.
     """
-    logger.debug("_normalize_base host_or_url=%s port=%s prefer_https=%s", host_or_url, port, prefer_https)
+    logger.debug(
+        "_normalize_base host_or_url=%s port=%s prefer_https=%s",
+        host_or_url,
+        port,
+        prefer_https,
+    )
     raw = (host_or_url or "").strip()
     if not raw:
         # Fallback safe default
@@ -102,15 +109,21 @@ def _xtream_api(base: str, username: str, password: str, **params) -> dict:
 
     Raises for HTTP errors; returns parsed JSON body.
     """
-    logger.info("Xtream API call base=%s action=%s", base, params.get("action"))
+    logger.info(
+        "Xtream API call base=%s action=%s", base, params.get("action")
+    )
     q = {"username": username, "password": password}
     q.update(params)
-    r = httpx.get(f"{base}/player_api.php", params=q, headers=HEADERS, verify=False)
+    r = httpx.get(
+        f"{base}/player_api.php", params=q, headers=HEADERS, verify=False
+    )
     r.raise_for_status()
     return r.json()
 
 
-def _build_m3u_from_xtream(base: str, username: str, password: str) -> Tuple[str, Dict[str, List[dict]]]:
+def _build_m3u_from_xtream(
+    base: str, username: str, password: str
+) -> Tuple[str, Dict[str, List[dict]]]:
     """Fetch Live and VOD streams and construct an M3U text and rich catalog.
 
     Returns (m3u_text, catalog) where catalog has keys: live, vod.
@@ -127,7 +140,10 @@ def _build_m3u_from_xtream(base: str, username: str, password: str) -> Tuple[str
     }
     results: Dict[str, list] = {}
     with ThreadPoolExecutor(max_workers=4) as ex:
-        future_map = {ex.submit(_xtream_api, base, username, password, **params): key for key, params in tasks.items()}
+        future_map = {
+            ex.submit(_xtream_api, base, username, password, **params): key
+            for key, params in tasks.items()
+        }
         for fut in as_completed(future_map):
             key = future_map[fut]
             try:
@@ -141,8 +157,14 @@ def _build_m3u_from_xtream(base: str, username: str, password: str) -> Tuple[str
     cats_vod = results.get("cats_vod", [])
     streams_vod = results.get("streams_vod", [])
 
-    cat_live = {str(c.get("category_id")): c.get("category_name", "Live") for c in cats_live}
-    cat_vod = {str(c.get("category_id")): c.get("category_name", "VOD") for c in cats_vod}
+    cat_live = {
+        str(c.get("category_id")): c.get("category_name", "Live")
+        for c in cats_live
+    }
+    cat_vod = {
+        str(c.get("category_id")): c.get("category_name", "VOD")
+        for c in cats_vod
+    }
 
     lines = ["#EXTM3U"]
     catalog: Dict[str, List[dict]] = {"live": [], "vod": []}
@@ -155,7 +177,14 @@ def _build_m3u_from_xtream(base: str, username: str, password: str) -> Tuple[str
             continue
         name = s.get("name") or s.get("title") or f"Live {stream_id}"
         logo = s.get("stream_icon") or s.get("logo") or s.get("icon") or ""
-        ctitle = cat_live.get(str(s.get("category_id") or s.get("categoryId") or s.get("category")), "Live")
+        ctitle = cat_live.get(
+            str(
+                s.get("category_id")
+                or s.get("categoryId")
+                or s.get("category")
+            ),
+            "Live",
+        )
         epg_id = s.get("epg_channel_id") or s.get("epg") or ""
         url = f"{base}/live/{username}/{password}/{stream_id}.m3u8"
         lines.append(
@@ -183,8 +212,19 @@ def _build_m3u_from_xtream(base: str, username: str, password: str) -> Tuple[str
             continue
         name = s.get("name") or s.get("title") or f"Movie {stream_id}"
         logo = s.get("stream_icon") or s.get("logo") or s.get("icon") or ""
-        ext = (s.get("container_extension") or s.get("containerExtension") or "mp4").lstrip(".")
-        ctitle = cat_vod.get(str(s.get("category_id") or s.get("categoryId") or s.get("category")), "VOD")
+        ext = (
+            s.get("container_extension")
+            or s.get("containerExtension")
+            or "mp4"
+        ).lstrip(".")
+        ctitle = cat_vod.get(
+            str(
+                s.get("category_id")
+                or s.get("categoryId")
+                or s.get("category")
+            ),
+            "VOD",
+        )
         url = f"{base}/movie/{username}/{password}/{stream_id}.{ext}"
         rating = s.get("rating") or s.get("imdb_rating") or ""
         releasedate = s.get("releasedate") or s.get("releaseDate") or ""
@@ -220,5 +260,9 @@ def _build_m3u_from_xtream(base: str, username: str, password: str) -> Tuple[str
             }
         )
 
-    logger.info("Xtream build complete live=%d vod=%d", len(catalog["live"]), len(catalog["vod"]))
+    logger.info(
+        "Xtream build complete live=%d vod=%d",
+        len(catalog["live"]),
+        len(catalog["vod"]),
+    )
     return "\n".join(lines), catalog

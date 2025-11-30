@@ -58,7 +58,13 @@ def init_logging(settings: Optional[LoggingConfig] = None) -> logging.Logger:
     backup_count = _safe_int(ls.backup_count, 1, 5)
 
     logfile = target_logs / LOG_FILE_BASENAME
-    handler_main = RotatingFileHandler(logfile, maxBytes=max_bytes, backupCount=backup_count, encoding="utf-8", delay=False)
+    handler_main = RotatingFileHandler(
+        logfile,
+        maxBytes=max_bytes,
+        backupCount=backup_count,
+        encoding="utf-8",
+        delay=False,
+    )
     fmt = logging.Formatter(
         fmt="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
@@ -67,7 +73,11 @@ def init_logging(settings: Optional[LoggingConfig] = None) -> logging.Logger:
 
     root = logging.getLogger()
     root.setLevel(level)
-    if not any(isinstance(h, RotatingFileHandler) and getattr(h, 'baseFilename', '') == str(logfile) for h in root.handlers):
+    if not any(
+        isinstance(h, RotatingFileHandler)
+        and getattr(h, "baseFilename", "") == str(logfile)
+        for h in root.handlers
+    ):
         root.addHandler(handler_main)
 
     if ls.console_enabled or os.environ.get("LOG_CONSOLE") == "1":
@@ -77,9 +87,21 @@ def init_logging(settings: Optional[LoggingConfig] = None) -> logging.Logger:
 
     root.info("\n=== %s v%s started ===", APP_NAME, __version__)
     root.info(
-        "Logging level=%s, file=%s, maxMB=%s, backups=%s", logging.getLevelName(level), str(logfile), ls.max_file_size_mb, backup_count
+        "Logging level=%s, file=%s, maxMB=%s, backups=%s",
+        logging.getLevelName(level),
+        str(logfile),
+        ls.max_file_size_mb,
+        backup_count,
     )
-    root.info("Process frozen=%s exe_dir=%s", getattr(sys, "frozen", False), (Path(sys.executable).parent if getattr(sys, "frozen", False) else os.getcwd()))
+    root.info(
+        "Process frozen=%s exe_dir=%s",
+        getattr(sys, "frozen", False),
+        (
+            Path(sys.executable).parent
+            if getattr(sys, "frozen", False)
+            else os.getcwd()
+        ),
+    )
 
     try:
         cleanup_old_logs(retention_days=_safe_int(ls.retention_days, 0, 14))
@@ -106,7 +128,9 @@ def cleanup_old_logs(retention_days: int) -> None:
     for p in LOGS_DIR.iterdir():
         if not p.is_file():
             continue
-        if p.name == LOG_FILE_BASENAME or p.name.startswith(LOG_FILE_BASENAME + "."):
+        if p.name == LOG_FILE_BASENAME or p.name.startswith(
+            LOG_FILE_BASENAME + "."
+        ):
             try:
                 mtime = datetime.fromtimestamp(p.stat().st_mtime)
                 if mtime < cutoff:

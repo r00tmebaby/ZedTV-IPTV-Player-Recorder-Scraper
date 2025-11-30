@@ -85,7 +85,7 @@ def launch_vlc_external(url: str, vlc_path: str = None) -> None:
         if not exe:
             common_paths = [
                 r"C:\\Program Files\\VideoLAN\\VLC\\vlc.exe",
-                r"C:\\Program Files (x86)\\VideoLAN\\VLC\\vlc.exe"
+                r"C:\\Program Files (x86)\\VideoLAN\\VLC\\vlc.exe",
             ]
             for path in common_paths:
                 if os.path.exists(path):
@@ -99,7 +99,9 @@ def launch_vlc_external(url: str, vlc_path: str = None) -> None:
             log.info("Successfully launched external VLC")
             return
         else:
-            log.warning("VLC executable not found in PATH or common directories")
+            log.warning(
+                "VLC executable not found in PATH or common directories"
+            )
     except Exception as e:
         log.error("Failed to launch VLC: %s", e)
 
@@ -157,7 +159,11 @@ class Player:
                 log.debug("PATH (prefix): %s", path_prefix)
                 vlc_lib_path = os.environ.get("PYTHON_VLC_LIB_PATH")
                 vlc_module_path = os.environ.get("PYTHON_VLC_MODULE_PATH")
-                log.debug("PYTHON_VLC_LIB_PATH=%s PYTHON_VLC_MODULE_PATH=%s", vlc_lib_path, vlc_module_path)
+                log.debug(
+                    "PYTHON_VLC_LIB_PATH=%s PYTHON_VLC_MODULE_PATH=%s",
+                    vlc_lib_path,
+                    vlc_module_path,
+                )
             except Exception as e:
                 log.debug("Failed to log PATH diagnostics: %s", e)
         except Exception as e:
@@ -168,7 +174,9 @@ class Player:
             cls.vlc_instance = player.Instance(*vlc_args)
             log.info("VLC Instance created successfully")
         except Exception as e:
-            log.warning("VLC Instance creation failed: %s - using dummy player", e)
+            log.warning(
+                "VLC Instance creation failed: %s - using dummy player", e
+            )
             cls.vlc_instance = _DummyInstance()
 
         # Create media player
@@ -226,7 +234,9 @@ class Player:
                 top.attributes("-fullscreen", True)
                 log.debug("Set fullscreen attribute")
             except Exception as e:
-                log.warning("Failed to set fullscreen attribute: %s, trying zoomed", e)
+                log.warning(
+                    "Failed to set fullscreen attribute: %s, trying zoomed", e
+                )
                 try:
                     top.state("zoomed")
                     log.debug("Set zoomed state as fallback")
@@ -273,10 +283,17 @@ class Player:
             log.info("Successfully entered fullscreen mode")
 
         except Exception as e:
-            log.error("Failed to enter fullscreen window: %s", e, exc_info=True)
+            log.error(
+                "Failed to enter fullscreen window: %s", e, exc_info=True
+            )
 
     @classmethod
-    def exit_fullscreen_window(cls, main_window: Any, canvas_element: Any, show_background_callback: Callable) -> None:
+    def exit_fullscreen_window(
+        cls,
+        main_window: Any,
+        canvas_element: Any,
+        show_background_callback: Callable,
+    ) -> None:
         """
         Exit controlled fullscreen and reattach to the small canvas.
 

@@ -70,7 +70,9 @@ class VLCSettings:
 
         # Network caching
         if self.settings.get("network_caching"):
-            args.append(f"--network-caching={self.settings['network_caching']}")
+            args.append(
+                f"--network-caching={self.settings['network_caching']}"
+            )
 
         if self.settings.get("live_caching"):
             args.append(f"--live-caching={self.settings['live_caching']}")

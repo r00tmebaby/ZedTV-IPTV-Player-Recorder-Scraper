@@ -38,15 +38,29 @@ class SplashScreen:
             self.window = sg.Window(
                 "Loading",
                 [
-                    [sg.Text("ZedTV IPTV Player", font=("Arial", 16, "bold"), justification="center")],
                     [
                         sg.Text(
-                            "Initializing...", font=("Arial", 10), justification="center", key="_status_", size=(40, 1)
+                            "ZedTV IPTV Player",
+                            font=("Arial", 16, "bold"),
+                            justification="center",
+                        )
+                    ],
+                    [
+                        sg.Text(
+                            "Initializing...",
+                            font=("Arial", 10),
+                            justification="center",
+                            key="_status_",
+                            size=(40, 1),
                         )
                     ],
                     [
                         sg.ProgressBar(
-                            100, orientation="h", size=(30, 10), key="_progress_", bar_color=("green", "white")
+                            100,
+                            orientation="h",
+                            size=(30, 10),
+                            key="_progress_",
+                            bar_color=("green", "white"),
                         )
                     ],
                 ],
@@ -67,7 +81,9 @@ class SplashScreen:
             self.window = None
             return False
 
-    def update_progress(self, value: int, status: Optional[str] = None) -> None:
+    def update_progress(
+        self, value: int, status: Optional[str] = None
+    ) -> None:
         """
         Update splash screen progress.
 
@@ -83,7 +99,9 @@ class SplashScreen:
             if status:
                 self.window["_status_"].update(status)
             self.window.refresh()
-            log.debug("Splash progress updated: %d%% - %s", value, status or "")
+            log.debug(
+                "Splash progress updated: %d%% - %s", value, status or ""
+            )
         except Exception as e:
             log.error("Failed to update splash screen: %s", e)
 

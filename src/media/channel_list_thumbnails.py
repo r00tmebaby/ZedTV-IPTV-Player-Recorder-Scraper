@@ -11,7 +11,9 @@ from ui import PySimpleGUI as sg
 from .thumbnails import get_thumbnail_path
 
 
-def create_channel_list_with_thumbnails(ui_settings: UISettings, initial_data=None):
+def create_channel_list_with_thumbnails(
+    ui_settings: UISettings, initial_data=None
+):
     """
     Create a channel list that displays actual thumbnail images.
     Uses a scrollable Column instead of Table.
@@ -27,7 +29,17 @@ def create_channel_list_with_thumbnails(ui_settings: UISettings, initial_data=No
     # Create column layout with thumbnails
     channel_rows = []
     for idx, (icon, title, rating, year, logo_url) in enumerate(initial_data):
-        row = create_channel_row(idx, icon, title, rating, year, logo_url, show_thumbnails, thumbnail_size, table_font)
+        row = create_channel_row(
+            idx,
+            icon,
+            title,
+            rating,
+            year,
+            logo_url,
+            show_thumbnails,
+            thumbnail_size,
+            table_font,
+        )
         channel_rows.append(row)
 
     if not channel_rows:
@@ -47,7 +59,17 @@ def create_channel_list_with_thumbnails(ui_settings: UISettings, initial_data=No
     return channel_column
 
 
-def create_channel_row(idx, icon, title, rating, year, logo_url, show_thumbnails, thumbnail_size, font):
+def create_channel_row(
+    idx,
+    icon,
+    title,
+    rating,
+    year,
+    logo_url,
+    show_thumbnails,
+    thumbnail_size,
+    font,
+):
     """Create a single channel row with thumbnail and info."""
 
     elements = []
@@ -132,12 +154,28 @@ def update_channel_list(window, channel_data, ui_settings):
 
     for idx, item in enumerate(channel_data):
         if len(item) >= 5:
-            icon, title, rating, year, logo_url = item[0], item[1], item[2], item[3], item[4] if len(item) > 4 else ""
+            icon, title, rating, year, logo_url = (
+                item[0],
+                item[1],
+                item[2],
+                item[3],
+                item[4] if len(item) > 4 else "",
+            )
         else:
             icon, title, rating, year = item[0], item[1], item[2], item[3]
             logo_url = ""
 
-        row = create_channel_row(idx, icon, title, rating, year, logo_url, show_thumbnails, thumbnail_size, table_font)
+        row = create_channel_row(
+            idx,
+            icon,
+            title,
+            rating,
+            year,
+            logo_url,
+            show_thumbnails,
+            thumbnail_size,
+            table_font,
+        )
         channel_rows.append(row)
 
     if not channel_rows:

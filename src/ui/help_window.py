@@ -93,8 +93,22 @@ def show_help_window():
     log.debug("Opening help window")
     sections = _SECTIONS
     left_col = [
-        [sg.Text("Help Topics", font=("Arial", 14, "bold"), pad=((5, 5), (10, 10)))],
-        [sg.Input(key="_help_search_", enable_events=True, size=(28, 1), tooltip="Type to filter help sections", pad=((5, 5), (5, 10)))],
+        [
+            sg.Text(
+                "Help Topics",
+                font=("Arial", 14, "bold"),
+                pad=((5, 5), (10, 10)),
+            )
+        ],
+        [
+            sg.Input(
+                key="_help_search_",
+                enable_events=True,
+                size=(28, 1),
+                tooltip="Type to filter help sections",
+                pad=((5, 5), (5, 10)),
+            )
+        ],
         [
             sg.Listbox(
                 values=[s[1] for s in sections],
@@ -102,13 +116,17 @@ def show_help_window():
                 size=(28, 25),
                 enable_events=True,
                 select_mode=sg.LISTBOX_SELECT_MODE_SINGLE,
-                pad=((5, 5), (5, 10))
+                pad=((5, 5), (5, 10)),
             )
         ],
         [sg.Button("Close", size=(10, 1), pad=((5, 5), (5, 10)))],
     ]
     right_col = [
-        [sg.Text("Details", font=("Arial", 14, "bold"), pad=((5, 5), (10, 10)))],
+        [
+            sg.Text(
+                "Details", font=("Arial", 14, "bold"), pad=((5, 5), (10, 10))
+            )
+        ],
         [
             sg.Multiline(
                 "Select a section on the left.",
@@ -117,7 +135,7 @@ def show_help_window():
                 disabled=True,
                 autoscroll=True,
                 font=("Consolas", 10),
-                pad=((5, 5), (5, 10))
+                pad=((5, 5), (5, 10)),
             )
         ],
     ]
@@ -128,12 +146,21 @@ def show_help_window():
             sg.Column(right_col, pad=(10, 10), vertical_alignment="top"),
         ]
     ]
-    win = sg.Window("Help Contents", layout, icon=ICON, modal=True, finalize=True, resizable=True)
+    win = sg.Window(
+        "Help Contents",
+        layout,
+        icon=ICON,
+        modal=True,
+        finalize=True,
+        resizable=True,
+    )
 
     def _update_list(q=""):
         filtered = _filter_sections(q)
         win["_help_list_"].update(values=[s[1] for s in filtered])
-        win["_help_body_"].update("Select a section on the left." if not filtered else "")
+        win["_help_body_"].update(
+            "Select a section on the left." if not filtered else ""
+        )
         win.metadata = {"filtered": filtered}
 
     _update_list()

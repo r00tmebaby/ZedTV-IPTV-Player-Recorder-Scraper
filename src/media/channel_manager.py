@@ -10,7 +10,9 @@ from ui import PySimpleGUI as sg
 from .thumbnails import get_thumbnail_path
 
 
-def create_channel_row_with_thumbnail(idx, title, rating, year, logo_url, ui_settings):
+def create_channel_row_with_thumbnail(
+    idx, title, rating, year, logo_url, ui_settings
+):
     """
     Create a single channel row with ACTUAL thumbnail image displayed.
     Returns a list that can be added to a Column.
@@ -102,7 +104,9 @@ def build_channel_rows(channel_data, ui_settings):
     rows = []
 
     if not channel_data:
-        return [[sg.Text("No channels loaded", font=ui_settings.get_font("table"))]]
+        return [
+            [sg.Text("No channels loaded", font=ui_settings.get_font("table"))]
+        ]
 
     for idx, row in enumerate(channel_data):
         if len(row) >= 5:
@@ -111,7 +115,9 @@ def build_channel_rows(channel_data, ui_settings):
             _, title, rating, year = row[0], row[1], row[2], row[3]
             logo_url = ""
 
-        channel_row = create_channel_row_with_thumbnail(idx, title, rating, year, logo_url, ui_settings)
+        channel_row = create_channel_row_with_thumbnail(
+            idx, title, rating, year, logo_url, ui_settings
+        )
         rows.extend(channel_row)
 
     return rows

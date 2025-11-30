@@ -33,7 +33,9 @@ async def play_media(
         canvas_element: Canvas element for video display
         clear_background_callback: Callback to clear background image
     """
-    media_url = getattr(media_play_link, "get_mrl", lambda: str(media_play_link))()
+    media_url = getattr(
+        media_play_link, "get_mrl", lambda: str(media_play_link)
+    )()
     log.info("Starting playback: %s, fullscreen=%s", media_url, full_screen)
 
     # Check if VLC is available
@@ -105,12 +107,17 @@ async def play_media(
     # Start playback
     try:
         player_instance.players.play()
-        log.info("Playback started successfully in %s mode", "fullscreen" if full_screen else "normal")
+        log.info(
+            "Playback started successfully in %s mode",
+            "fullscreen" if full_screen else "normal",
+        )
     except Exception as e:
         log.error("Failed to start playback: %s", e)
 
 
-def stop_playback(player_instance: Any, show_background_callback: callable) -> None:
+def stop_playback(
+    player_instance: Any, show_background_callback: callable
+) -> None:
     """
     Stop media playback and show background.
 

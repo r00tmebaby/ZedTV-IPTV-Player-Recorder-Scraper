@@ -10,7 +10,11 @@ import logging
 from typing import Any, Optional
 
 from core.config import ICON
-from ui.layout import build_category_panel_layout, build_channel_panel_layout, sg
+from ui.layout import (
+    build_category_panel_layout,
+    build_channel_panel_layout,
+    sg,
+)
 
 # Module logger
 log = logging.getLogger(__name__)
@@ -125,7 +129,9 @@ class WindowManager:
                 try:
                     self.category_window.move(cat_x, cat_y)
                     self.category_window.size = (cat_w, cat_h)
-                    log.debug("Category window docked at (%d, %d)", cat_x, cat_y)
+                    log.debug(
+                        "Category window docked at (%d, %d)", cat_x, cat_y
+                    )
                 except Exception as e:
                     log.warning("Failed to position category window: %s", e)
 
@@ -157,7 +163,9 @@ class WindowManager:
                     """Handle category search keypress."""
                     try:
                         text = cat_entry.get()
-                        self.main_window.write_event_value("__KEY_FILTER__", ("_cat_search_", text))
+                        self.main_window.write_event_value(
+                            "__KEY_FILTER__", ("_cat_search_", text)
+                        )
                         log.debug("Category search filter: '%s'", text)
                     except Exception as e:
                         log.error("Failed to handle category search: %s", e)
@@ -176,7 +184,9 @@ class WindowManager:
                     """Handle channel search keypress."""
                     try:
                         text = ch_entry.get()
-                        self.main_window.write_event_value("__KEY_FILTER__", ("_ch_search_", text))
+                        self.main_window.write_event_value(
+                            "__KEY_FILTER__", ("_ch_search_", text)
+                        )
                         log.debug("Channel search filter: '%s'", text)
                     except Exception as e:
                         log.error("Failed to handle channel search: %s", e)
@@ -223,19 +233,25 @@ class WindowManager:
                 state = self.main_window.TKroot.state()
                 if state == "iconic":
                     _sync_flag["iconified"] = True
-                    log.debug("Main window minimized, minimizing child windows")
+                    log.debug(
+                        "Main window minimized, minimizing child windows"
+                    )
 
                     if self.category_visible and self.category_window:
                         try:
                             self.category_window.TKroot.iconify()
                         except Exception as e:
-                            log.error("Failed to minimize category window: %s", e)
+                            log.error(
+                                "Failed to minimize category window: %s", e
+                            )
 
                     if self.channel_visible and self.channel_window:
                         try:
                             self.channel_window.TKroot.iconify()
                         except Exception as e:
-                            log.error("Failed to minimize channel window: %s", e)
+                            log.error(
+                                "Failed to minimize channel window: %s", e
+                            )
             except Exception as e:
                 log.error("Failed in unmap handler: %s", e)
             finally:
@@ -256,14 +272,18 @@ class WindowManager:
                             self.category_window.TKroot.deiconify()
                             self.category_window.BringToFront()
                         except Exception as e:
-                            log.error("Failed to restore category window: %s", e)
+                            log.error(
+                                "Failed to restore category window: %s", e
+                            )
 
                     if self.channel_visible and self.channel_window:
                         try:
                             self.channel_window.TKroot.deiconify()
                             self.channel_window.BringToFront()
                         except Exception as e:
-                            log.error("Failed to restore channel window: %s", e)
+                            log.error(
+                                "Failed to restore channel window: %s", e
+                            )
 
                     self.dock_panels()
                     _sync_flag["iconified"] = False

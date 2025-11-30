@@ -21,7 +21,9 @@ logger = logging.getLogger("zedtv.video")
 def _safe_filename(name: str, max_len: int = 180) -> str:
     """Return a Windows-safe filename (no reserved chars, trimmed)."""
     s = re.sub(r"\s+", " ", name or "").strip()
-    s = "".join((c if c not in INVALID_WIN and ord(c) >= 32 else "_") for c in s)
+    s = "".join(
+        (c if c not in INVALID_WIN and ord(c) >= 32 else "_") for c in s
+    )
     s = s.rstrip(" .")[:max_len]
     return s or "recording"
 
@@ -35,7 +37,12 @@ def build_record_sout(title: str) -> str:
     dst = str(dst_path)
     if platform.startswith("win"):
         dst = dst.replace("\\", "\\\\")  # Escape for VLC on Windows
-    return f":sout=#duplicate{{" f"dst=std{{access=file,mux=mp4,dst='{dst}'}}," f"dst=display" f"}}"
+    return (
+        f":sout=#duplicate{{"
+        f"dst=std{{access=file,mux=mp4,dst='{dst}'}},"
+        f"dst=display"
+        f"}}"
+    )
 
 
 def _detect_vlc() -> Optional[List[str]]:

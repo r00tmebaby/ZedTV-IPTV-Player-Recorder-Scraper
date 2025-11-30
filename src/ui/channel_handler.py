@@ -32,7 +32,9 @@ class ChannelHandler:
         log.debug("Initializing ChannelHandler")
         self.last_channel_idx: Optional[int] = None
 
-    def get_selected_channel_index(self, event: str, values: dict, channel_window: Any) -> Optional[int]:
+    def get_selected_channel_index(
+        self, event: str, values: dict, channel_window: Any
+    ) -> Optional[int]:
         """
         Get the selected channel index from various sources.
 
@@ -54,25 +56,39 @@ class ChannelHandler:
             log.debug("Channel selected from table: index=%d", selected_idx)
 
         # Fallback: use last remembered selection for context menu actions
-        if selected_idx is None and event in ["Record", "Full Screen", "Play in VLC"]:
+        if selected_idx is None and event in [
+            "Record",
+            "Full Screen",
+            "Play in VLC",
+        ]:
             if self.last_channel_idx is not None:
                 selected_idx = self.last_channel_idx
-                log.debug("Using last_channel_idx=%d for event %s", selected_idx, event)
+                log.debug(
+                    "Using last_channel_idx=%d for event %s",
+                    selected_idx,
+                    event,
+                )
 
         # Final fallback: read current selection directly from listbox element
         if selected_idx is None and channel_window:
             try:
-                cur_sel = channel_window["_iptv_content_"].Widget.curselection()
+                cur_sel = channel_window[
+                    "_iptv_content_"
+                ].Widget.curselection()
                 if cur_sel:
                     selected_idx = cur_sel[0]
                     self.last_channel_idx = selected_idx
-                    log.debug("Channel selected from listbox: index=%d", selected_idx)
+                    log.debug(
+                        "Channel selected from listbox: index=%d", selected_idx
+                    )
             except Exception as e:
                 log.error("Failed to read listbox selection: %s", e)
 
         return selected_idx
 
-    def parse_channel_block(self, selected_idx: int) -> Optional[Tuple[str, str]]:
+    def parse_channel_block(
+        self, selected_idx: int
+    ) -> Optional[Tuple[str, str]]:
         """
         Parse channel information from selected index.
 
@@ -101,7 +117,11 @@ class ChannelHandler:
             if m:
                 title = m.group(1)
             else:
-                title = extinf_line.split(",", 1)[-1] if "," in extinf_line else "Unknown"
+                title = (
+                    extinf_line.split(",", 1)[-1]
+                    if "," in extinf_line
+                    else "Unknown"
+                )
 
             title = title.replace("|", "")
 
@@ -109,11 +129,21 @@ class ChannelHandler:
             return (title, media_link)
 
         except Exception as e:
-            log.error("Failed to parse channel block at index %d: %s", selected_idx, e, exc_info=True)
+            log.error(
+                "Failed to parse channel block at index %d: %s",
+                selected_idx,
+                e,
+                exc_info=True,
+            )
             return None
 
     async def handle_channel_playback(
-        self, event: str, values: dict, channel_window: Any, player_instance: Any, play_callback: callable
+        self,
+        event: str,
+        values: dict,
+        channel_window: Any,
+        player_instance: Any,
+        play_callback: callable,
     ) -> None:
         """
         Handle channel playback request.
@@ -128,13 +158,18 @@ class ChannelHandler:
         log.info("Handling channel playback: event=%s", event)
 
         # Get selected channel index
-        selected_idx = self.get_selected_channel_index(event, values, channel_window)
+        selected_idx = self.get_selected_channel_index(
+            event, values, channel_window
+        )
 
         if selected_idx is None:
             if event != "_iptv_content_":
                 log.warning("No channel selected for playback")
                 try:
-                    sg.popup_error("No channel selected. Please click a channel first.", keep_on_top=True)
+                    sg.popup_error(
+                        "No channel selected. Please click a channel first.",
+                        keep_on_top=True,
+                    )
                 except Exception as e:
                     log.error("Failed to show error popup: %s", e)
             return
@@ -155,7 +190,9 @@ class ChannelHandler:
                 player_instance.players.stop()
                 log.info("External VLC launched successfully")
             except Exception as e:
-                log.error("Failed to launch external VLC: %s", e, exc_info=True)
+                log.error(
+                    "Failed to launch external VLC: %s", e, exc_info=True
+                )
             return
 
         # Handle sending to browser
@@ -189,14 +226,28 @@ class ChannelHandler:
             return
 
         # Handle normal/fullscreen playback
-        log.info("Starting %s playback: %s", "fullscreen" if event == "Full Screen" else "normal", title)
+        log.info(
+            "Starting %s playback: %s",
+            "fullscreen" if event == "Full Screen" else "normal",
+            title,
+        )
         try:
-            Data.media_instance = player_instance.vlc_instance.media_new(media_link)
-            await asyncio.ensure_future(play_callback(Data.media_instance, event == "Full Screen"))
+            Data.media_instance = player_instance.vlc_instance.media_new(
+                media_link
+            )
+            await asyncio.ensure_future(
+                play_callback(Data.media_instance, event == "Full Screen")
+            )
         except Exception as e:
-            log.error("Failed to create media instance or start playback: %s", e, exc_info=True)
+            log.error(
+                "Failed to create media instance or start playback: %s",
+                e,
+                exc_info=True,
+            )
 
-    async def handle_category_selection(self, values: dict, window_manager: Any, player_instance: Any) -> None:
+    async def handle_category_selection(
+        self, values: dict, window_manager: Any, player_instance: Any
+    ) -> None:
         """
         Handle category selection and update channel list.
 
@@ -215,8 +266,13 @@ class ChannelHandler:
 
             # Store selected category indices
             try:
-                Data.selected_category_indices = values.get("_table_countries_", []) or []
-                log.debug("Selected category indices: %s", Data.selected_category_indices)
+                Data.selected_category_indices = (
+                    values.get("_table_countries_", []) or []
+                )
+                log.debug(
+                    "Selected category indices: %s",
+                    Data.selected_category_indices,
+                )
             except Exception as e:
                 log.error("Failed to store category indices: %s", e)
                 Data.selected_category_indices = []
@@ -243,9 +299,14 @@ class ChannelHandler:
                 )
 
             # Update channel window
-            if window_manager.channel_visible and window_manager.channel_window:
+            if (
+                window_manager.channel_visible
+                and window_manager.channel_window
+            ):
                 window_manager.channel_window["_iptv_content_"].update(rows)
                 log.info("Channel list updated: %d channels", len(rows))
 
         except Exception as e:
-            log.error("Failed to handle category selection: %s", e, exc_info=True)
+            log.error(
+                "Failed to handle category selection: %s", e, exc_info=True
+            )

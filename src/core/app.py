@@ -6,7 +6,11 @@ from pathlib import Path
 from typing import List
 
 from parsing.m3u_parser import parse_m3u
-from services.xtream import _build_m3u_from_xtream, _normalize_base, _xtream_api  # re-exported for settings/account
+from services.xtream import (
+    _build_m3u_from_xtream,
+    _normalize_base,
+    _xtream_api,
+)  # re-exported for settings/account
 from utils.video_utils import _safe_filename
 from utils.video_utils import build_record_sout as _build_record_sout
 
@@ -29,13 +33,18 @@ def _epoch_to_str(s: str | int | None) -> str:
         # Reject negative timestamps
         if epoch < 0:
             return str(s)
-        return datetime.fromtimestamp(epoch, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+        return datetime.fromtimestamp(epoch, tz=timezone.utc).strftime(
+            "%Y-%m-%d %H:%M:%S UTC"
+        )
     except Exception:
         return str(s)
 
 
 def get_selected() -> List[List[str]]:
-    logger.debug("get_selected building table rows from %d selected blocks", len(Data.selected_list))
+    logger.debug(
+        "get_selected building table rows from %d selected blocks",
+        len(Data.selected_list),
+    )
     """
     Build rows for the right-hand table from the selected category:
     [Title, Rating, Year]
@@ -97,10 +106,16 @@ def get_selected() -> List[List[str]]:
 
 
 def get_categories(filter_search: str = None) -> List[str]:
-    logger.info("get_categories invoked filename=%s filter=%s", Data.filename, filter_search)
+    logger.info(
+        "get_categories invoked filename=%s filter=%s",
+        Data.filename,
+        filter_search,
+    )
     if os.path.isfile(Data.filename):
         try:
-            with open(Data.filename, "r", encoding="utf8", errors="ignore") as file:
+            with open(
+                Data.filename, "r", encoding="utf8", errors="ignore"
+            ) as file:
                 Data.data = file.read()
             Data.m3u_parser = parse_m3u(Data.data)
             Data.parsed_channels = Data.m3u_parser.channels
@@ -108,18 +123,29 @@ def get_categories(filter_search: str = None) -> List[str]:
             if filter_search:
                 cats = [c for c in cats if filter_search.lower() in c.lower()]
             Data.categories = cats
-            Data.categories_master = list(cats) if not filter_search else Data.categories_master or list(cats)
+            Data.categories_master = (
+                list(cats)
+                if not filter_search
+                else Data.categories_master or list(cats)
+            )
             logger.info("Parsed categories total=%d", len(cats))
             return cats
         except Exception as e:
-            logger.exception("Failed to read/parse M3U file '%s': %s", Data.filename, e)
+            logger.exception(
+                "Failed to read/parse M3U file '%s': %s", Data.filename, e
+            )
             return []
     else:
         logger.warning("File does not exist: %s", Data.filename)
     return []
 
 
-async def generate_list(values: dict, categories: List[str], new_file: str = None, do_file: bool = False) -> List[str]:
+async def generate_list(
+    values: dict,
+    categories: List[str],
+    new_file: str = None,
+    do_file: bool = False,
+) -> List[str]:
     """
     Generate a filtered list of channels based on selected categories.
 
@@ -132,7 +158,11 @@ async def generate_list(values: dict, categories: List[str], new_file: str = Non
     Returns:
         List of channel blocks (EXTINF + URL) for the selected categories
     """
-    logger.info("generate_list called with %d categories, do_file=%s", len(categories), do_file)
+    logger.info(
+        "generate_list called with %d categories, do_file=%s",
+        len(categories),
+        do_file,
+    )
 
     # Get selected category indices
     selected_indices = values.get("_table_countries_", [])
@@ -141,7 +171,9 @@ async def generate_list(values: dict, categories: List[str], new_file: str = Non
         return []
 
     # Get selected category names
-    selected_cats = [categories[i] for i in selected_indices if 0 <= i < len(categories)]
+    selected_cats = [
+        categories[i] for i in selected_indices if 0 <= i < len(categories)
+    ]
     logger.info("Selected categories: %s", selected_cats)
 
     # Filter channels by selected categories
@@ -156,14 +188,20 @@ async def generate_list(values: dict, categories: List[str], new_file: str = Non
             block = channel.to_block()
             filtered_blocks.append(block)
 
-    logger.info("Filtered %d channels from selected categories", len(filtered_blocks))
+    logger.info(
+        "Filtered %d channels from selected categories", len(filtered_blocks)
+    )
 
     # Optionally write to file
     if do_file and new_file:
         try:
             content = "#EXTM3U\n" + "\n".join(filtered_blocks)
             Path(new_file).write_text(content, encoding="utf-8")
-            logger.info("Written filtered M3U to %s (%d channels)", new_file, len(filtered_blocks))
+            logger.info(
+                "Written filtered M3U to %s (%d channels)",
+                new_file,
+                len(filtered_blocks),
+            )
         except Exception as e:
             logger.error("Failed to write M3U file %s: %s", new_file, e)
 
@@ -182,4 +220,6 @@ def _fmt_formats(ui: dict, limit: int = 4) -> str:
     fmt = ui.get("allowed_output_formats") or []
     if not fmt:
         return "-"
-    return ",".join(fmt[:limit]) + (f" +{len(fmt)-limit}" if len(fmt) > limit else "")
+    return ",".join(fmt[:limit]) + (
+        f" +{len(fmt)-limit}" if len(fmt) > limit else ""
+    )

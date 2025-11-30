@@ -44,7 +44,11 @@ class BackgroundManager:
         Returns:
             Path to background.jpg file
         """
-        base = Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent.parent
+        base = (
+            Path(sys.executable).parent
+            if getattr(sys, "frozen", False)
+            else Path(__file__).parent.parent
+        )
         path = base / "data" / "thumbnails" / "background.jpg"
         log.debug("Background image path: %s", path)
         return path
@@ -60,7 +64,11 @@ class BackgroundManager:
 
         # Don't show background if player is currently playing
         try:
-            if player_instance and player_instance.players and player_instance.players.is_playing():
+            if (
+                player_instance
+                and player_instance.players
+                and player_instance.players.is_playing()
+            ):
                 log.debug("Player is playing, skipping background display")
                 return
         except Exception as e:
@@ -93,16 +101,26 @@ class BackgroundManager:
             # Choose best available resampling filter
             Resampling = getattr(Image, "Resampling", None)
             _RES_LANCZOS = getattr(
-                Image, "LANCZOS", getattr(Resampling, "LANCZOS", Image.BICUBIC) if Resampling else Image.BICUBIC
+                Image,
+                "LANCZOS",
+                (
+                    getattr(Resampling, "LANCZOS", Image.BICUBIC)
+                    if Resampling
+                    else Image.BICUBIC
+                ),
             )
             log.debug("Using resampling filter: %s", _RES_LANCZOS)
 
             # Load, convert, and resize image
-            img = Image.open(path).convert("RGB").resize((cw, ch), _RES_LANCZOS)
+            img = (
+                Image.open(path).convert("RGB").resize((cw, ch), _RES_LANCZOS)
+            )
             self.bg_image_photo = ImageTk.PhotoImage(img)
 
             # Display image on canvas
-            self.bg_image_id = canvas_widget.create_image(cw // 2, ch // 2, image=self.bg_image_photo)
+            self.bg_image_id = canvas_widget.create_image(
+                cw // 2, ch // 2, image=self.bg_image_photo
+            )
             log.info("Background image displayed successfully")
 
         except Exception as e:

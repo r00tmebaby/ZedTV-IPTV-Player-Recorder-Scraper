@@ -59,7 +59,13 @@ def _settings_set(**kwargs) -> None:
     _settings_save(d)
 
 
-def _load_xtream_into_app(window: sg.Window, base: str, username: str, password: str, category_window=None):
+def _load_xtream_into_app(
+    window: sg.Window,
+    base: str,
+    username: str,
+    password: str,
+    category_window=None,
+):
     """Build M3U cache + rich catalog, point Data.filename.
     This now runs heavy network + parse work in a background thread while showing a progress popup.
     """
@@ -67,23 +73,31 @@ def _load_xtream_into_app(window: sg.Window, base: str, username: str, password:
 
     # TTL pre-check: if recent cache exists, use it and return early
     cache = Path(os.path.join(DATA_FOLDER, f"xtream_{username}.m3u"))
-    catalog_path = Path(os.path.join(DATA_FOLDER, f"xtream_{username}.catalog.json"))
+    catalog_path = Path(
+        os.path.join(DATA_FOLDER, f"xtream_{username}.catalog.json")
+    )
     try:
         if cache.exists():
             mtime = datetime.fromtimestamp(cache.stat().st_mtime)
             if datetime.now() - mtime < timedelta(minutes=CACHE_TTL_MINUTES):
-                logger.info("Using cached Xtream M3U (age < %dm)", CACHE_TTL_MINUTES)
+                logger.info(
+                    "Using cached Xtream M3U (age < %dm)", CACHE_TTL_MINUTES
+                )
                 Data.filename = str(cache)
                 if catalog_path.exists():
                     try:
-                        Data.xtream_catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
+                        Data.xtream_catalog = json.loads(
+                            catalog_path.read_text(encoding="utf-8")
+                        )
                     except Exception:
                         Data.xtream_catalog = None
                 # Parse categories from cached file
                 Data.categories = get_categories()
                 if category_window:
                     try:
-                        category_window["_table_countries_"].update(_rows(Data.categories))
+                        category_window["_table_countries_"].update(
+                            _rows(Data.categories)
+                        )
                     except Exception:
                         pass
                 return
@@ -108,7 +122,9 @@ def _load_xtream_into_app(window: sg.Window, base: str, username: str, password:
 
     def worker():
         try:
-            progress_win.write_event_value("_XTREAM_STAGE_", (5, "Fetching live categories"))
+            progress_win.write_event_value(
+                "_XTREAM_STAGE_", (5, "Fetching live categories")
+            )
             text, catalog = _build_m3u_from_xtream(base, username, password)
             result_holder["text"] = text
             result_holder["catalog"] = catalog
@@ -145,7 +161,10 @@ def _load_xtream_into_app(window: sg.Window, base: str, username: str, password:
     progress_win.close()
 
     if "error" in result_holder:
-        sg.popup_error(f"Failed to load Xtream list: {result_holder['error']}", keep_on_top=True)
+        sg.popup_error(
+            f"Failed to load Xtream list: {result_holder['error']}",
+            keep_on_top=True,
+        )
         logger.error("Xtream load failed: %s", result_holder["error"])
         return
 
@@ -156,24 +175,32 @@ def _load_xtream_into_app(window: sg.Window, base: str, username: str, password:
         return
 
     cache = Path(os.path.join(DATA_FOLDER, f"xtream_{username}.m3u"))
-    catalog_path = Path(os.path.join(DATA_FOLDER, f"xtream_{username}.catalog.json"))
+    catalog_path = Path(
+        os.path.join(DATA_FOLDER, f"xtream_{username}.catalog.json")
+    )
 
     # Check TTL cache to skip fetch if recent
     try:
         if cache.exists():
             mtime = datetime.fromtimestamp(cache.stat().st_mtime)
             if datetime.now() - mtime < timedelta(minutes=CACHE_TTL_MINUTES):
-                logger.info("Using cached Xtream M3U (age < %dm)", CACHE_TTL_MINUTES)
+                logger.info(
+                    "Using cached Xtream M3U (age < %dm)", CACHE_TTL_MINUTES
+                )
                 Data.filename = str(cache)
                 if catalog_path.exists():
                     try:
-                        Data.xtream_catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
+                        Data.xtream_catalog = json.loads(
+                            catalog_path.read_text(encoding="utf-8")
+                        )
                     except Exception:
                         pass
                 # Parse categories from cached file
                 Data.categories = get_categories()
                 if category_window:
-                    category_window["_table_countries_"].update(_rows(Data.categories))
+                    category_window["_table_countries_"].update(
+                        _rows(Data.categories)
+                    )
                 progress_win.close()
                 return
     except Exception:
@@ -218,7 +245,9 @@ def _remember_last_m3u(path: str) -> None:
     _settings_set(last_choice="m3u", last_m3u=path)
 
 
-def _auto_restore_last(window: "sg.Window", category_window=None) -> Optional[str]:
+def _auto_restore_last(
+    window: "sg.Window", category_window=None
+) -> Optional[str]:
     """
     Try to restore last session. Returns "account", "m3u" or None.
     Respects the last_choice field and gracefully falls back.
@@ -235,7 +264,13 @@ def _auto_restore_last(window: "sg.Window", category_window=None) -> Optional[st
             return False
         try:
             Data.xtream_account = {"name": accname, **acc}
-            _load_xtream_into_app(window, acc["base"], acc["username"], acc["password"], category_window)
+            _load_xtream_into_app(
+                window,
+                acc["base"],
+                acc["username"],
+                acc["password"],
+                category_window,
+            )
             return True
         except Exception:
             return False
@@ -246,7 +281,9 @@ def _auto_restore_last(window: "sg.Window", category_window=None) -> Optional[st
             Data.filename = p
             Data.categories = get_categories()
             if category_window:
-                category_window["_table_countries_"].update(_rows(Data.categories))
+                category_window["_table_countries_"].update(
+                    _rows(Data.categories)
+                )
             return True
         return False
 

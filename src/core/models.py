@@ -75,8 +75,16 @@ class Data:
     ip_info = {}  # defer fetching until user opens IP Info
     # New parser instance and channel objects list
     m3u_parser = None  # will hold M3UParser instance
-    parsed_channels: List[object] = []  # list of Channel dataclasses from m3u_parser
-    selected_category_indices: List[int] = []  # newly added: track selected category table indices
+    parsed_channels: List[object] = (
+        []
+    )  # list of Channel dataclasses from m3u_parser
+    selected_category_indices: List[int] = (
+        []
+    )  # newly added: track selected category table indices
     # Caches for fast channel filtering
-    rows_cache: List[List[str]] = []  # rows for current selected_list (Title, Rating, Year)
-    search_titles_lower: List[str] = []  # lowercase titles aligned to selected_list
+    rows_cache: List[List[str]] = (
+        []
+    )  # rows for current selected_list (Title, Rating, Year)
+    search_titles_lower: List[str] = (
+        []
+    )  # lowercase titles aligned to selected_list

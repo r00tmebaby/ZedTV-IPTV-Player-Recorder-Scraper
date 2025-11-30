@@ -27,7 +27,15 @@ async def load_epg_async(data_module: Any) -> None:
     """
     log.info("Starting background EPG loading")
     try:
-        base_dir = (Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent.parent) / "data" / "epg"
+        base_dir = (
+            (
+                Path(sys.executable).parent
+                if getattr(sys, "frozen", False)
+                else Path(__file__).parent.parent
+            )
+            / "data"
+            / "epg"
+        )
         log.debug("EPG base directory: %s", base_dir)
 
         epg_index: Dict[str, List[Any]] = {}
@@ -48,10 +56,14 @@ async def load_epg_async(data_module: Any) -> None:
                     epg_index.setdefault(k, []).extend(arr)
 
                 xml_count += 1
-                log.info("Loaded XML EPG file: %s (%d entries)", p.name, len(idx))
+                log.info(
+                    "Loaded XML EPG file: %s (%d entries)", p.name, len(idx)
+                )
 
             except Exception as e:
-                log.error("Failed to load EPG file %s: %s", p, e, exc_info=True)
+                log.error(
+                    "Failed to load EPG file %s: %s", p, e, exc_info=True
+                )
 
         log.info("Loaded %d XML EPG files", xml_count)
 
@@ -67,10 +79,14 @@ async def load_epg_async(data_module: Any) -> None:
                     epg_index.setdefault(k, []).extend(arr)
 
                 json_count += 1
-                log.info("Loaded JSON EPG file: %s (%d entries)", p.name, len(idx))
+                log.info(
+                    "Loaded JSON EPG file: %s (%d entries)", p.name, len(idx)
+                )
 
             except Exception as e:
-                log.error("Failed to load EPG file %s: %s", p, e, exc_info=True)
+                log.error(
+                    "Failed to load EPG file %s: %s", p, e, exc_info=True
+                )
 
         log.info("Loaded %d JSON EPG files", json_count)
 
@@ -81,9 +97,18 @@ async def load_epg_async(data_module: Any) -> None:
                 data_module.m3u_parser.map_epg(epg_index)
 
                 # Count channels with EPG data
-                channels_with_epg = len([c for c in data_module.m3u_parser.channels if getattr(c, "epg", None)])
+                channels_with_epg = len(
+                    [
+                        c
+                        for c in data_module.m3u_parser.channels
+                        if getattr(c, "epg", None)
+                    ]
+                )
 
-                log.info("EPG mapped to channels: %d channels have EPG data", channels_with_epg)
+                log.info(
+                    "EPG mapped to channels: %d channels have EPG data",
+                    channels_with_epg,
+                )
 
             except Exception as e:
                 log.error("EPG mapping failed: %s", e, exc_info=True)

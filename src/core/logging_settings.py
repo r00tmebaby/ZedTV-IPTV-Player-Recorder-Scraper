@@ -39,7 +39,9 @@ class LoggingSettings:
     def load_settings(self) -> LoggingConfig:
         try:
             if LOGGING_SETTINGS_FILE.exists():
-                raw: Dict[str, Any] = json.loads(LOGGING_SETTINGS_FILE.read_text(encoding="utf-8"))
+                raw: Dict[str, Any] = json.loads(
+                    LOGGING_SETTINGS_FILE.read_text(encoding="utf-8")
+                )
                 # merge defaults with file content (for forward compat)
                 merged = asdict(DEFAULT_LOGGING_CONFIG)
                 merged.update(raw or {})

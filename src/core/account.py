@@ -88,7 +88,13 @@ def _choose_account_window() -> Optional[AccountChoice]:
         return rows
 
     layout = [
-        [sg.Text("Saved Xtream Accounts", font=("Arial", 14, "bold"), pad=((5, 5), (10, 15)))],
+        [
+            sg.Text(
+                "Saved Xtream Accounts",
+                font=("Arial", 14, "bold"),
+                pad=((5, 5), (10, 15)),
+            )
+        ],
         [
             sg.Table(
                 values=_rows_from_saved(),
@@ -101,15 +107,25 @@ def _choose_account_window() -> Optional[AccountChoice]:
                 expand_y=True,
                 select_mode=sg.TABLE_SELECT_MODE_BROWSE,
                 num_rows=12,
-                pad=((5, 5), (5, 15))
+                pad=((5, 5), (5, 15)),
             )
         ],
         [
-            sg.Button("Use", size=(12, 1), bind_return_key=True, pad=((5, 5), (5, 10))),
+            sg.Button(
+                "Use",
+                size=(12, 1),
+                bind_return_key=True,
+                pad=((5, 5), (5, 10)),
+            ),
             sg.Button("Details", size=(12, 1), pad=((5, 5), (5, 10))),
             sg.Button("Refresh Snapshot", size=(15, 1), pad=((5, 5), (5, 10))),
             sg.Push(),
-            sg.Button("Delete", size=(10, 1), button_color=("white", "red"), pad=((5, 5), (5, 10))),
+            sg.Button(
+                "Delete",
+                size=(10, 1),
+                button_color=("white", "red"),
+                pad=((5, 5), (5, 10)),
+            ),
             sg.Button("Close", size=(10, 1), pad=((5, 5), (5, 10))),
         ],
     ]
@@ -227,34 +243,66 @@ def _accounts_save_one(name: str, acc: dict) -> None:
 def _add_account_window():
     """Modal window to add an Xtream account, testing connectivity before saving."""
     layout = [
-        [sg.Text("Add Xtream Account", font=("Arial", 14, "bold"), pad=((0, 0), (10, 15)))],
+        [
+            sg.Text(
+                "Add Xtream Account",
+                font=("Arial", 14, "bold"),
+                pad=((0, 0), (10, 15)),
+            )
+        ],
         [sg.HorizontalSeparator()],
-
-        [sg.Text("Account Configuration", font=("Arial", 11, "bold"), pad=((0, 0), (10, 10)))],
+        [
+            sg.Text(
+                "Account Configuration",
+                font=("Arial", 11, "bold"),
+                pad=((0, 0), (10, 10)),
+            )
+        ],
         [
             sg.Text("Name:", size=(18, 1), pad=((10, 5), (5, 5))),
             sg.Input(key="_name_", size=(35, 1)),
         ],
-        [sg.Text("Friendly name to identify this account", font=("Arial", 9), text_color="gray", pad=((10, 10), (0, 10)))],
-
+        [
+            sg.Text(
+                "Friendly name to identify this account",
+                font=("Arial", 9),
+                text_color="gray",
+                pad=((10, 10), (0, 10)),
+            )
+        ],
         [sg.HorizontalSeparator(pad=((0, 0), (5, 5)))],
-
-        [sg.Text("Server Settings", font=("Arial", 11, "bold"), pad=((0, 0), (10, 10)))],
+        [
+            sg.Text(
+                "Server Settings",
+                font=("Arial", 11, "bold"),
+                pad=((0, 0), (10, 10)),
+            )
+        ],
         [
             sg.Text("Host:", size=(18, 1), pad=((10, 5), (5, 5))),
             sg.Input(key="_host_", size=(35, 1)),
         ],
-        [sg.Text("e.g. liken.me or 192.168.1.100", font=("Arial", 9), text_color="gray", pad=((10, 10), (0, 10)))],
-
+        [
+            sg.Text(
+                "e.g. liken.me or 192.168.1.100",
+                font=("Arial", 9),
+                text_color="gray",
+                pad=((10, 10), (0, 10)),
+            )
+        ],
         [
             sg.Text("Port:", size=(18, 1), pad=((10, 5), (5, 5))),
             sg.Input(key="_port_", size=(12, 1), default_text="80"),
             sg.Checkbox("Use HTTPS", key="_https_", pad=((15, 5), (5, 5))),
         ],
-
         [sg.HorizontalSeparator(pad=((0, 0), (10, 10)))],
-
-        [sg.Text("Credentials", font=("Arial", 11, "bold"), pad=((0, 0), (10, 10)))],
+        [
+            sg.Text(
+                "Credentials",
+                font=("Arial", 11, "bold"),
+                pad=((0, 0), (10, 10)),
+            )
+        ],
         [
             sg.Text("Username:", size=(18, 1), pad=((10, 5), (5, 5))),
             sg.Input(key="_user_", size=(35, 1)),
@@ -267,17 +315,30 @@ def _add_account_window():
                 size=(35, 1),
             ),
         ],
-
         [sg.HorizontalSeparator(pad=((0, 0), (15, 15)))],
-
         [
             sg.Push(),
             sg.Button("Cancel", size=(10, 1), pad=((5, 5), (5, 10))),
-            sg.Button("Test & Save", size=(12, 1), bind_return_key=True, button_color=("white", "green"), pad=((5, 5), (5, 10))),
+            sg.Button(
+                "Test & Save",
+                size=(12, 1),
+                bind_return_key=True,
+                button_color=("white", "green"),
+                pad=((5, 5), (5, 10)),
+            ),
         ],
-        [sg.Text("Account will be tested before saving", font=("Arial", 9, "italic"), text_color="gray", pad=((10, 10), (0, 10)))],
+        [
+            sg.Text(
+                "Account will be tested before saving",
+                font=("Arial", 9, "italic"),
+                text_color="gray",
+                pad=((10, 10), (0, 10)),
+            )
+        ],
     ]
-    w = sg.Window("Add Xtream Account", layout, modal=True, keep_on_top=True, icon=ICON)
+    w = sg.Window(
+        "Add Xtream Account", layout, modal=True, keep_on_top=True, icon=ICON
+    )
     while True:
         e, v = w.read()
         if e in (sg.WIN_CLOSED, "Cancel"):
@@ -299,7 +360,9 @@ def _add_account_window():
                         "password": v["_pass_"],
                         "snapshot": {
                             **info,
-                            "_fetched_at": datetime.now(timezone.utc).isoformat(),
+                            "_fetched_at": datetime.now(
+                                timezone.utc
+                            ).isoformat(),
                         },
                     }
                     _accounts_save_one(name, acc)
@@ -316,6 +379,8 @@ def _add_account_window():
                     return {"name": name, **acc}
 
                 else:
-                    sg.popup_error("Auth failed (not Active?).", keep_on_top=True)
+                    sg.popup_error(
+                        "Auth failed (not Active?).", keep_on_top=True
+                    )
             except Exception as ex:
                 sg.popup_error(f"Error: {ex}", keep_on_top=True)

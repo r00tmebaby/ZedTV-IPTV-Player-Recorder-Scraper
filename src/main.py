@@ -14,21 +14,42 @@ def _write_startup_error(exc_type, exc, tb) -> None:
         import traceback
         import datetime
 
-        base_dir = _os.path.dirname(_sys.executable) if getattr(_sys, "frozen", False) else _os.getcwd()
+        base_dir = (
+            _os.path.dirname(_sys.executable)
+            if getattr(_sys, "frozen", False)
+            else _os.getcwd()
+        )
         log_path = _os.path.join(base_dir, "startup_error.log")
         with open(log_path, "a", encoding="utf-8") as f:
-            f.write("\n=== Startup error at %s ===\n" % datetime.datetime.now().isoformat())
+            f.write(
+                "\n=== Startup error at %s ===\n"
+                % datetime.datetime.now().isoformat()
+            )
             f.write("%s: %s\n" % (exc_type.__name__, exc))
             traceback.print_tb(tb, file=f)
             # Useful env context
-            f.write("PYTHON_VLC_LIB_PATH=%s\n" % _os.environ.get("PYTHON_VLC_LIB_PATH", ""))
-            f.write("PYTHON_VLC_MODULE_PATH=%s\n" % _os.environ.get("PYTHON_VLC_MODULE_PATH", ""))
-            f.write("VLC_PLUGIN_PATH=%s\n" % _os.environ.get("VLC_PLUGIN_PATH", ""))
-            f.write("PATH contains exe dir? %s\n" % (base_dir in _os.environ.get("PATH", "")))
+            f.write(
+                "PYTHON_VLC_LIB_PATH=%s\n"
+                % _os.environ.get("PYTHON_VLC_LIB_PATH", "")
+            )
+            f.write(
+                "PYTHON_VLC_MODULE_PATH=%s\n"
+                % _os.environ.get("PYTHON_VLC_MODULE_PATH", "")
+            )
+            f.write(
+                "VLC_PLUGIN_PATH=%s\n" % _os.environ.get("VLC_PLUGIN_PATH", "")
+            )
+            f.write(
+                "PATH contains exe dir? %s\n"
+                % (base_dir in _os.environ.get("PATH", ""))
+            )
         # Also try the app logger if already initialized
         try:
             import logging as _logging
-            _logging.getLogger().error("Uncaught exception", exc_info=(exc_type, exc, tb))
+
+            _logging.getLogger().error(
+                "Uncaught exception", exc_info=(exc_type, exc, tb)
+            )
             for _h in _logging.getLogger().handlers:
                 try:
                     _h.flush()
@@ -39,12 +60,15 @@ def _write_startup_error(exc_type, exc, tb) -> None:
         # Best-effort user notice
         try:
             import ctypes
+
             msg = (
                 "ZedTV failed to start.\n\n"
                 "A startup_error.log was written next to the .exe.\n"
                 "Please share it so we can fix the issue."
             )
-            ctypes.windll.user32.MessageBoxW(None, msg, "ZedTV Startup Error", 0x00000010)
+            ctypes.windll.user32.MessageBoxW(
+                None, msg, "ZedTV Startup Error", 0x00000010
+            )
         except Exception:
             pass
     except Exception:
@@ -67,6 +91,7 @@ from core.config import ICON
 from core.logger_setup import init_logging
 from core.logging_settings import LoggingSettings
 from core.models import Data
+
 # Ensure VLC (libvlc) can be found in frozen builds before importing Player
 if getattr(sys, "frozen", False):
     try:
@@ -80,13 +105,17 @@ if getattr(sys, "frozen", False):
             os.path.join(exe_dir, "libs", "win", "plugins"),
         ]
         lib_path = next((p for p in candidate_libs if os.path.exists(p)), None)
-        plugins_path = next((p for p in candidate_plugins if os.path.isdir(p)), None)
+        plugins_path = next(
+            (p for p in candidate_plugins if os.path.isdir(p)), None
+        )
 
         # Prepend likely dirs to PATH and DLL search
         dll_dirs = [exe_dir, os.path.join(exe_dir, "libs", "win")]
         for d in dll_dirs:
             if os.path.isdir(d):
-                os.environ["PATH"] = d + os.pathsep + os.environ.get("PATH", "")
+                os.environ["PATH"] = (
+                    d + os.pathsep + os.environ.get("PATH", "")
+                )
                 try:
                     if hasattr(os, "add_dll_directory"):
                         os.add_dll_directory(d)
@@ -140,7 +169,11 @@ async def main() -> None:
     ui_settings = UISettings()
     ui_settings.apply_theme()
     fonts = ui_settings.get_all_fonts()
-    sg.set_options(font=fonts["normal"], button_element_size=(10, 1), element_padding=(0, 0))
+    sg.set_options(
+        font=fonts["normal"],
+        button_element_size=(10, 1),
+        element_padding=(0, 0),
+    )
     log.debug("UI settings and theme applied")
 
     # Load initial categories
@@ -247,7 +280,14 @@ async def main() -> None:
     # Create playback callback wrappers
     async def play(media, fullscreen=False):
         """Play media wrapper."""
-        await play_media(media, fullscreen, Player, window, window["_canvas_video_"], background_mgr.clear_background)
+        await play_media(
+            media,
+            fullscreen,
+            Player,
+            window,
+            window["_canvas_video_"],
+            background_mgr.clear_background,
+        )
 
     def stop():
         """Stop playback wrapper."""
@@ -284,7 +324,9 @@ async def main() -> None:
         if ev == "__EXIT_FULLSCREEN__":
             log.debug("Exiting fullscreen")
             Player.exit_fullscreen_window(
-                window, window["_canvas_video_"], lambda: background_mgr.show_background(Player)
+                window,
+                window["_canvas_video_"],
+                lambda: background_mgr.show_background(Player),
             )
             continue
 
@@ -293,7 +335,12 @@ async def main() -> None:
             try:
                 field, text = values[event]
                 search_handler.handle_search_event(
-                    field, text, Data, window_manager.category_window, window_manager.channel_window, Player
+                    field,
+                    text,
+                    Data,
+                    window_manager.category_window,
+                    window_manager.channel_window,
+                    Player,
                 )
             except Exception as e:
                 log.error("Key filter handling failed: %s", e, exc_info=True)
@@ -321,7 +368,10 @@ async def main() -> None:
 
         # Handle window close events
         if ev in (sg.WIN_CLOSED, "Exit"):
-            log.info("Exit triggered from window=%s", getattr(active_window, "Title", "main"))
+            log.info(
+                "Exit triggered from window=%s",
+                getattr(active_window, "Title", "main"),
+            )
             if active_window == window:
                 break
             elif active_window == window_manager.category_window:
@@ -360,17 +410,31 @@ async def main() -> None:
         elif ev == "IP Info":
             event_handler.handle_ip_info()
         elif ev == "_table_countries_" and Data.categories:
-            await channel_handler.handle_category_selection(values, window_manager, Player)
+            await channel_handler.handle_category_selection(
+                values, window_manager, Player
+            )
         elif ev == "Stop":
             stop()
-        elif ev in ["_iptv_content_", "Record", "Full Screen", "Play in VLC", "Send to Browser"]:
-            await channel_handler.handle_channel_playback(ev, values, window_manager.channel_window, Player, play)
+        elif ev in [
+            "_iptv_content_",
+            "Record",
+            "Full Screen",
+            "Play in VLC",
+            "Send to Browser",
+        ]:
+            await channel_handler.handle_channel_playback(
+                ev, values, window_manager.channel_window, Player, play
+            )
         # Handle keyboard shortcuts
         if event is not None and event is not sg.TIMEOUT_KEY:
-            if isinstance(event, str) and len(event) == 1 and ord(event) == 27:  # ESC
+            if (
+                isinstance(event, str) and len(event) == 1 and ord(event) == 27
+            ):  # ESC
                 if Player.is_fullscreen:
                     Player.exit_fullscreen_window(
-                        window, window["_canvas_video_"], lambda: background_mgr.show_background(Player)
+                        window,
+                        window["_canvas_video_"],
+                        lambda: background_mgr.show_background(Player),
                     )
                     log.debug("ESC pressed - exited fullscreen")
                 else:

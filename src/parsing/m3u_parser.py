@@ -9,7 +9,9 @@ from typing import Dict, Iterable, List, Optional
 
 logger = logging.getLogger("zedtv.m3u")
 
-_EXTINF_RE = re.compile(r"^#EXTINF:(?P<duration>-?\d+)\s*(?P<attr_part>[^,]*?)\s*,(?P<title>.*)$")
+_EXTINF_RE = re.compile(
+    r"^#EXTINF:(?P<duration>-?\d+)\s*(?P<attr_part>[^,]*?)\s*,(?P<title>.*)$"
+)
 _ATTR_RE = re.compile(r'(\w[\w-]*)\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^,\s]+))')
 _EXTGRP_RE = re.compile(r"^#EXTGRP:(?P<grp>.+)$")
 _PROP_PREFIXES = ("#EXTVLCOPT", "#KODIPROP", "#EXTHTTP", "#EXTIMG")
@@ -37,7 +39,9 @@ class Channel:
         if self.raw_extinf:
             lines.append(self.raw_extinf)
         else:
-            attr_part = " ".join(f'{k}="{v}"' for k, v in sorted(self.attrs.items()))
+            attr_part = " ".join(
+                f'{k}="{v}"' for k, v in sorted(self.attrs.items())
+            )
             lines.append(f"#EXTINF:{self.duration} {attr_part},{self.title}")
         lines.append(self.url)
         return "\n".join(lines)
@@ -56,11 +60,17 @@ class Channel:
 
     @property
     def group_title(self) -> str:
-        return self.attrs.get("group-title", self.group or self.extgrp or "Other")
+        return self.attrs.get(
+            "group-title", self.group or self.extgrp or "Other"
+        )
 
     @property
     def all_properties(self) -> Dict[str, Dict[str, str] | List[str]]:
-        return {"vlc": self.vlc_opts, "kodi": self.kodi_props, "other_raw": self.other_props}
+        return {
+            "vlc": self.vlc_opts,
+            "kodi": self.kodi_props,
+            "other_raw": self.other_props,
+        }
 
 
 class M3UParser:
@@ -96,12 +106,16 @@ class M3UParser:
                         kv = line.split(":", 1)[1]
                         if "=" in kv:
                             k, v = kv.split("=", 1)
-                            pending_props.append(f"__PARSED_VLC__:{k.strip()}={v.strip()}")
+                            pending_props.append(
+                                f"__PARSED_VLC__:{k.strip()}={v.strip()}"
+                            )
                     elif line.startswith("#KODIPROP:"):
                         kv = line.split(":", 1)[1]
                         if "=" in kv:
                             k, v = kv.split("=", 1)
-                            pending_props.append(f"__PARSED_KODI__:{k.strip()}={v.strip()}")
+                            pending_props.append(
+                                f"__PARSED_KODI__:{k.strip()}={v.strip()}"
+                            )
                 except Exception:
                     logger.debug("Failed parsing property line '%s'", line)
                 i += 1
@@ -118,7 +132,9 @@ class M3UParser:
                 attrs: Dict[str, str] = {}
                 for am in _ATTR_RE.finditer(attr_part):
                     key = am.group(1).strip()
-                    val = (am.group(2) or am.group(3) or am.group(4) or "").strip()
+                    val = (
+                        am.group(2) or am.group(3) or am.group(4) or ""
+                    ).strip()
                     if key not in attrs:
                         attrs[key] = val
                 group = attrs.get("group-title", "") or (last_extgrp or "")
@@ -129,7 +145,9 @@ class M3UParser:
                     if not nxt:
                         j += 1
                         continue
-                    if nxt.startswith("#") and not nxt.lower().startswith("#http"):
+                    if nxt.startswith("#") and not nxt.lower().startswith(
+                        "#http"
+                    ):
                         break
                     url = nxt
                     break
@@ -145,7 +163,11 @@ class M3UParser:
                     url=url,
                     attrs=attrs,
                     group=group,
-                    properties=[p for p in pending_props if not p.startswith("__PARSED_")],
+                    properties=[
+                        p
+                        for p in pending_props
+                        if not p.startswith("__PARSED_")
+                    ],
                     extgrp=last_extgrp,
                     raw_extinf=lines[i],
                 )
@@ -160,9 +182,15 @@ class M3UParser:
                         if "=" in kv:
                             k, v = kv.split("=", 1)
                             chan.kodi_props[k] = v
-                    elif pp.startswith("#") and not pp.startswith(_PROP_PREFIXES):
+                    elif pp.startswith("#") and not pp.startswith(
+                        _PROP_PREFIXES
+                    ):
                         chan.other_props.append(pp)
-                epg_id = attrs.get("epg-id") or attrs.get("epg_channel_id") or attrs.get("tvg-id")
+                epg_id = (
+                    attrs.get("epg-id")
+                    or attrs.get("epg_channel_id")
+                    or attrs.get("tvg-id")
+                )
                 if epg_id:
                     chan.attrs.setdefault("epg-id", epg_id)
                 self.channels.append(chan)
@@ -190,7 +218,9 @@ class M3UParser:
     def to_blocks(self, channels: Iterable[Channel]) -> List[str]:
         return [c.to_block() for c in channels]
 
-    def map_epg(self, epg_index: Dict[str, List[dict]], key_order: List[str] = None) -> int:
+    def map_epg(
+        self, epg_index: Dict[str, List[dict]], key_order: List[str] = None
+    ) -> int:
         if key_order is None:
             key_order = ["epg-id", "epg_channel_id", "tvg-id"]
         enriched = 0

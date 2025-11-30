@@ -67,14 +67,20 @@ def load_xmltv(xml_content: str) -> EPGIndex:
             arr.sort(key=lambda x: x.get("start") or "")
         except Exception:
             pass
-    log.info("XMLTV loaded channels=%d total_programmes=%d", len(index), sum(len(v) for v in index.values()))
+    log.info(
+        "XMLTV loaded channels=%d total_programmes=%d",
+        len(index),
+        sum(len(v) for v in index.values()),
+    )
     return index
 
 
 essential_keys = {"channel", "start", "stop", "title"}
 
 
-def load_json_epg(json_content: str, mapping: Optional[dict] = None) -> EPGIndex:
+def load_json_epg(
+    json_content: str, mapping: Optional[dict] = None
+) -> EPGIndex:
     """Parse a simple JSON EPG format.
     Expected shape (flexible):
         {"programmes": [{"channel": "id", "start": "...", "stop": "...", "title": "...", ...}, ...]}
@@ -128,7 +134,11 @@ def load_json_epg(json_content: str, mapping: Optional[dict] = None) -> EPGIndex
             arr.sort(key=lambda x: x.get("start") or "")
         except Exception:
             pass
-    log.info("JSON EPG loaded channels=%d total_programmes=%d", len(index), sum(len(v) for v in index.values()))
+    log.info(
+        "JSON EPG loaded channels=%d total_programmes=%d",
+        len(index),
+        sum(len(v) for v in index.values()),
+    )
     return index
 
 
