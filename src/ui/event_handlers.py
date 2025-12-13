@@ -197,9 +197,35 @@ class EventHandler:
                     window_manager.category_visible
                     and window_manager.category_window
                 ):
-                    window_manager.category_window["_table_countries_"].update(
-                        _rows(Data.categories)
-                    )
+                    # Check if there's an active category search filter
+                    search_text = ""
+                    try:
+                        search_text = window_manager.category_window["_cat_search_"].get()
+                    except Exception as e:
+                        log.debug("Could not get category search text: %s", e)
+
+                    # If there's an active filter, apply it; otherwise show all categories
+                    if search_text and search_text.strip():
+                        log.info("Reapplying category filter: %r", search_text)
+                        try:
+                            from utils.search_handler import SearchHandler
+                            search_handler = SearchHandler()
+                            search_handler.filter_categories(
+                                search_text,
+                                Data,
+                                window_manager.category_window,
+                            )
+                        except Exception as e:
+                            log.error("Failed to reapply category filter: %s", e, exc_info=True)
+                            # Fallback: show all categories
+                            window_manager.category_window["_table_countries_"].update(
+                                _rows(Data.categories)
+                            )
+                    else:
+                        # No filter active, show all categories
+                        window_manager.category_window["_table_countries_"].update(
+                            _rows(Data.categories)
+                        )
                     log.debug("Category window updated with new playlist")
 
                 _remember_last_m3u(Data.filename)

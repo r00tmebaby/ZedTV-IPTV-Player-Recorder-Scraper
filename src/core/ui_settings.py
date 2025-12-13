@@ -21,6 +21,21 @@ DEFAULT_UI_SETTINGS = {
     "title_font_size": 14,
     "button_font_size": 10,
     "table_font_size": 10,
+    # Keyboard shortcuts
+    "key_exit_fullscreen": "Escape",
+    "key_toggle_controls": "c",
+    "key_play_pause": "space",
+    "key_seek_forward_small": "Right",
+    "key_seek_backward_small": "Left",
+    "key_seek_forward_big": "Control_L+Right",
+    "key_seek_backward_big": "Control_L+Left",
+    "key_volume_up": "Up",
+    "key_volume_down": "Down",
+    "key_fullscreen": "f",
+    "key_subtitle_menu": "s",
+    "key_audio_menu": "a",
+    "key_speed_menu": "d",
+    "key_global_search": "Control_L+f",
 }
 
 # Available themes (curated list of good-looking themes)
@@ -185,3 +200,17 @@ class UISettings:
             "button": self.get_font("button"),
             "table": self.get_font("table"),
         }
+
+    def get_key_binding(self, action: str) -> str:
+        """
+        Get keyboard binding for a specific action.
+
+        Args:
+            action: Action name (e.g., 'exit_fullscreen', 'toggle_controls')
+
+        Returns:
+            Key binding string (e.g., 'Escape', 'c')
+        """
+        key = f"key_{action}"
+        return self.settings.get(key, DEFAULT_UI_SETTINGS.get(key, ""))
+

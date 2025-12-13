@@ -303,8 +303,38 @@ class ChannelHandler:
                 window_manager.channel_visible
                 and window_manager.channel_window
             ):
-                window_manager.channel_window["_iptv_content_"].update(rows)
-                log.info("Channel list updated: %d channels", len(rows))
+                # Check if there's an active search filter
+                search_text = ""
+                try:
+                    if "_ch_search_" in values:
+                        search_text = values["_ch_search_"]
+                    elif hasattr(window_manager.channel_window, "__getitem__"):
+                        # Try to read from the window element directly
+                        search_text = window_manager.channel_window["_ch_search_"].get()
+                except Exception as e:
+                    log.debug("Could not get search text: %s", e)
+
+                # If there's an active filter, apply it; otherwise show all rows
+                if search_text and search_text.strip():
+                    log.info("Reapplying channel filter: %r", search_text)
+                    # Import search handler and apply filter
+                    try:
+                        from utils.search_handler import SearchHandler
+                        search_handler = SearchHandler()
+                        search_handler.apply_channel_filter_immediate(
+                            search_text,
+                            Data,
+                            window_manager.channel_window,
+                            player_instance,
+                        )
+                    except Exception as e:
+                        log.error("Failed to reapply filter: %s", e, exc_info=True)
+                        # Fallback: show all rows
+                        window_manager.channel_window["_iptv_content_"].update(rows)
+                else:
+                    # No filter active, show all rows
+                    window_manager.channel_window["_iptv_content_"].update(rows)
+                    log.info("Channel list updated: %d channels", len(rows))
 
         except Exception as e:
             log.error(

@@ -195,6 +195,103 @@ class SearchHandler:
         except Exception:
             log.exception("Failed to filter channels")
 
+    def apply_channel_filter_immediate(
+        self,
+        search_text: str,
+        data_module: Any,
+        channel_window: Any,
+        player_instance: Any,
+    ) -> None:
+        """
+        Apply channel filter immediately without debouncing.
+
+        This is used when switching categories to reapply existing filters.
+
+        Args:
+            search_text: Search query text
+            data_module: Data module containing channels and caches
+            channel_window: Channel window to update (optional)
+            player_instance: Player instance for accessing master channel list
+        """
+        log.debug(
+            "apply_channel_filter_immediate invoked with text=%r", search_text
+        )
+
+        txt = (search_text or "").strip().lower()
+
+        try:
+            # Get base channel list
+            base_list: List[Any] = (
+                getattr(player_instance, "_channels_master", None)
+                or getattr(data_module, "selected_list", [])
+                or []
+            )
+
+            # Get or generate display rows
+            if not getattr(data_module, "rows_cache", None) or len(
+                getattr(data_module, "rows_cache", [])
+            ) != len(base_list):
+                # Recompute selected_list and rows
+                data_module.selected_list = base_list
+                if get_selected is None:
+                    log.debug(
+                        "get_selected not available; skipping row generation"
+                    )
+                    rows = []
+                else:
+                    rows = get_selected()
+            else:
+                rows = data_module.rows_cache
+
+            # Apply filter
+            if txt:
+                # Ensure search_titles_lower exists
+                search_titles_lower = getattr(
+                    data_module, "search_titles_lower", None
+                )
+                if search_titles_lower is None:
+                    # Build it from rows if possible
+                    search_titles_lower = [(r[0] or "").lower() for r in rows]
+                    data_module.search_titles_lower = search_titles_lower
+
+                idxs = [
+                    i
+                    for i, tval in enumerate(data_module.search_titles_lower)
+                    if txt in tval
+                ]
+                data_module.selected_list = [base_list[i] for i in idxs]
+
+                if channel_window is not None:
+                    try:
+                        channel_window["_iptv_content_"].update(
+                            [rows[i] for i in idxs]
+                        )
+                    except Exception:
+                        log.exception(
+                            "Failed to update channel window with filtered rows"
+                        )
+
+                log.info(
+                    "Channel filter applied immediately: %d matches out of %d",
+                    len(idxs),
+                    len(base_list),
+                )
+            else:
+                data_module.selected_list = base_list
+
+                if channel_window is not None:
+                    try:
+                        channel_window["_iptv_content_"].update(rows)
+                    except Exception:
+                        log.exception(
+                            "Failed to update channel window when clearing filter"
+                        )
+
+                log.debug("No filter to apply (empty search text)")
+
+        except Exception:
+            log.exception("Failed to apply channel filter immediately")
+
     def handle_search_event(
         self,
         field: str,

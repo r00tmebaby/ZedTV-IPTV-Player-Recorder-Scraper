@@ -69,6 +69,15 @@ class WindowManager:
                 finalize=True,
                 keep_on_top=False,
             )
+
+            # Make this window a transient child of main window
+            # This prevents it from showing separately in taskbar
+            try:
+                window.TKroot.transient(self.main_window.TKroot)
+                log.debug("Category window set as transient of main window")
+            except Exception as e:
+                log.warning("Failed to set category window as transient: %s", e)
+
             self.category_window = window
             self.category_visible = True
             log.info("Category window created successfully")
@@ -101,6 +110,15 @@ class WindowManager:
                 finalize=True,
                 keep_on_top=False,
             )
+
+            # Make this window a transient child of main window
+            # This prevents it from showing separately in taskbar
+            try:
+                window.TKroot.transient(self.main_window.TKroot)
+                log.debug("Channel window set as transient of main window")
+            except Exception as e:
+                log.warning("Failed to set channel window as transient: %s", e)
+
             self.channel_window = window
             self.channel_visible = True
             log.info("Channel window created successfully")

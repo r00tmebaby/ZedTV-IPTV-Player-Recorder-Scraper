@@ -192,7 +192,128 @@ def _show_ui_settings_window(current_settings: UISettings) -> bool:
         ],
     ]
 
-    # Tab 3: Quick Presets
+    # Tab 3: Keyboard Shortcuts
+    current_key_exit_fullscreen = current_settings.settings.get("key_exit_fullscreen", "Escape")
+    current_key_toggle_controls = current_settings.settings.get("key_toggle_controls", "c")
+    current_key_play_pause = current_settings.settings.get("key_play_pause", "space")
+    current_key_fullscreen = current_settings.settings.get("key_fullscreen", "f")
+
+    keyboard_tab = [
+        [
+            sg.Text(
+                "Keyboard Shortcuts",
+                font=(current_font, 13, "bold"),
+                pad=((5, 5), (10, 10)),
+            )
+        ],
+        [
+            sg.Text(
+                "Customize keyboard shortcuts for common actions",
+                font=(current_font, 9),
+                text_color="gray",
+                pad=((10, 10), (0, 15)),
+            )
+        ],
+        [
+            sg.Text(
+                "Exit Fullscreen:",
+                size=(20, 1),
+                font=(current_font, current_font_size),
+                pad=((10, 10), (5, 5)),
+            ),
+            sg.Input(
+                current_key_exit_fullscreen,
+                key="_key_exit_fullscreen_",
+                size=(20, 1),
+                font=(current_font, current_font_size),
+            ),
+            sg.Text(
+                "Default: Escape",
+                font=(current_font, 9),
+                text_color="gray",
+            ),
+        ],
+        [
+            sg.Text(
+                "Toggle Controls:",
+                size=(20, 1),
+                font=(current_font, current_font_size),
+                pad=((10, 10), (5, 5)),
+            ),
+            sg.Input(
+                current_key_toggle_controls,
+                key="_key_toggle_controls_",
+                size=(20, 1),
+                font=(current_font, current_font_size),
+            ),
+            sg.Text(
+                "Default: c",
+                font=(current_font, 9),
+                text_color="gray",
+            ),
+        ],
+        [
+            sg.Text(
+                "Play/Pause:",
+                size=(20, 1),
+                font=(current_font, current_font_size),
+                pad=((10, 10), (5, 5)),
+            ),
+            sg.Input(
+                current_key_play_pause,
+                key="_key_play_pause_",
+                size=(20, 1),
+                font=(current_font, current_font_size),
+            ),
+            sg.Text(
+                "Default: space",
+                font=(current_font, 9),
+                text_color="gray",
+            ),
+        ],
+        [
+            sg.Text(
+                "Toggle Fullscreen:",
+                size=(20, 1),
+                font=(current_font, current_font_size),
+                pad=((10, 10), (5, 5)),
+            ),
+            sg.Input(
+                current_key_fullscreen,
+                key="_key_fullscreen_",
+                size=(20, 1),
+                font=(current_font, current_font_size),
+            ),
+            sg.Text(
+                "Default: f",
+                font=(current_font, 9),
+                text_color="gray",
+            ),
+        ],
+        [sg.HorizontalSeparator(pad=((0, 0), (10, 10)))],
+        [
+            sg.Text(
+                "Common Key Names:",
+                font=(current_font, 11, "bold"),
+                pad=((10, 10), (5, 5)),
+            ),
+        ],
+        [
+            sg.Text(
+                "Letters: a-z, A-Z\n"
+                "Numbers: 0-9\n"
+                "Special: Escape, Return, space, Tab\n"
+                "Arrows: Up, Down, Left, Right\n"
+                "Function: F1-F12\n"
+                "Modifiers: Control_L, Alt_L, Shift_L",
+                font=(current_font, 9),
+                text_color="gray",
+                pad=((10, 10), (5, 10)),
+            ),
+        ],
+    ]
+
+    # Tab 4: Quick Presets
     presets_tab = [
         [
             sg.Text(
@@ -294,6 +415,12 @@ def _show_ui_settings_window(current_settings: UISettings) -> bool:
                             "Fonts",
                             font_tab,
                             key="_tab_fonts_",
+                            font=(current_font, 10),
+                        ),
+                        sg.Tab(
+                            "Keyboard",
+                            keyboard_tab,
+                            key="_tab_keyboard_",
                             font=(current_font, 10),
                         ),
                         sg.Tab(
@@ -434,6 +561,18 @@ def _show_ui_settings_window(current_settings: UISettings) -> bool:
             window["_table_font_size_"].update(
                 DEFAULT_UI_SETTINGS["table_font_size"]
             )
+            window["_key_exit_fullscreen_"].update(
+                DEFAULT_UI_SETTINGS["key_exit_fullscreen"]
+            )
+            window["_key_toggle_controls_"].update(
+                DEFAULT_UI_SETTINGS["key_toggle_controls"]
+            )
+            window["_key_play_pause_"].update(
+                DEFAULT_UI_SETTINGS["key_play_pause"]
+            )
+            window["_key_fullscreen_"].update(
+                DEFAULT_UI_SETTINGS["key_fullscreen"]
+            )
 
             sg.popup(
                 "Settings restored to defaults\n\nClick 'Save & Restart' to apply.",
@@ -448,6 +587,18 @@ def _show_ui_settings_window(current_settings: UISettings) -> bool:
             current_settings.settings["font_size"] = values["_font_size_"]
             current_settings.settings["title_font_size"] = values[
                 "_title_font_size_"
+            ]
+            current_settings.settings["key_exit_fullscreen"] = values[
+                "_key_exit_fullscreen_"
+            ]
+            current_settings.settings["key_toggle_controls"] = values[
+                "_key_toggle_controls_"
+            ]
+            current_settings.settings["key_play_pause"] = values[
+                "_key_play_pause_"
+            ]
+            current_settings.settings["key_fullscreen"] = values[
+                "_key_fullscreen_"
             ]
             current_settings.settings["button_font_size"] = values[
                 "_button_font_size_"

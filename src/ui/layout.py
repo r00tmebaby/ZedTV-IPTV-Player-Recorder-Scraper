@@ -2,6 +2,7 @@ from core.app import _rows
 from core.models import Data
 
 from . import PySimpleGUI as sg
+from .playback_controls import build_playback_controls_row
 
 """UI layout builders (category panel, channel panel, main window).
 Separated from main logic to keep window construction modular.
@@ -10,7 +11,7 @@ Separated from main logic to keep window construction modular.
 menu_def = [
     ["&File", ["&Open", "&Custom List", "&Exit"]],
     ["&Xtream", ["&Add Account", "&Accounts...", "&Reload from Current"]],
-    ["&View", ["Show &Categories", "Show C&hannels", "&Restore Layout"]],
+    ["&View", ["&Global Search (Ctrl+F)", "---", "Show &Categories", "Show C&hannels", "&Restore Layout"]],
     [
         "&Settings",
         ["&UI Settings", "&VLC Settings", "&Logging Settings", "&IP Info"],
@@ -206,6 +207,14 @@ def build_layout(ui_settings=None):
                             [[video_canvas]],
                             expand_x=True,
                             expand_y=True,
+                        ),
+                    ],
+                    [
+                        sg.Col(
+                            [build_playback_controls_row()],
+                            justification="center",
+                            expand_x=True,
+                            pad=(0, 5),
                         ),
                     ],
                 ],

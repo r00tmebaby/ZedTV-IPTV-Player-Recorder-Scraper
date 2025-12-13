@@ -94,12 +94,39 @@ def _load_xtream_into_app(
                 # Parse categories from cached file
                 Data.categories = get_categories()
                 if category_window:
+                    # Check if there's an active category search filter
+                    search_text = ""
                     try:
-                        category_window["_table_countries_"].update(
-                            _rows(Data.categories)
-                        )
+                        search_text = category_window["_cat_search_"].get()
                     except Exception:
                         pass
+
+                    # If there's an active filter, apply it; otherwise show all categories
+                    if search_text and search_text.strip():
+                        try:
+                            from utils.search_handler import SearchHandler
+                            search_handler = SearchHandler()
+                            search_handler.filter_categories(
+                                search_text,
+                                Data,
+                                category_window,
+                            )
+                        except Exception:
+                            # Fallback: show all categories
+                            try:
+                                category_window["_table_countries_"].update(
+                                    _rows(Data.categories)
+                                )
+                            except Exception:
+                                pass
+                    else:
+                        # No filter active, show all categories
+                        try:
+                            category_window["_table_countries_"].update(
+                                _rows(Data.categories)
+                            )
+                        except Exception:
+                            pass
                 return
     except Exception:
         pass
@@ -198,9 +225,33 @@ def _load_xtream_into_app(
                 # Parse categories from cached file
                 Data.categories = get_categories()
                 if category_window:
-                    category_window["_table_countries_"].update(
-                        _rows(Data.categories)
-                    )
+                    # Check if there's an active category search filter
+                    search_text = ""
+                    try:
+                        search_text = category_window["_cat_search_"].get()
+                    except Exception:
+                        pass
+
+                    # If there's an active filter, apply it; otherwise show all categories
+                    if search_text and search_text.strip():
+                        try:
+                            from utils.search_handler import SearchHandler
+                            search_handler = SearchHandler()
+                            search_handler.filter_categories(
+                                search_text,
+                                Data,
+                                category_window,
+                            )
+                        except Exception:
+                            # Fallback: show all categories
+                            category_window["_table_countries_"].update(
+                                _rows(Data.categories)
+                            )
+                    else:
+                        # No filter active, show all categories
+                        category_window["_table_countries_"].update(
+                            _rows(Data.categories)
+                        )
                 progress_win.close()
                 return
     except Exception:
@@ -223,10 +274,35 @@ def _load_xtream_into_app(
     except Exception as e:
         logger.warning("Parsing categories post-load failed: %s", e)
     if category_window:
+        # Check if there's an active category search filter
+        search_text = ""
         try:
-            category_window["_table_countries_"].update(_rows(Data.categories))
+            search_text = category_window["_cat_search_"].get()
         except Exception:
             pass
+
+        # If there's an active filter, apply it; otherwise show all categories
+        if search_text and search_text.strip():
+            try:
+                from utils.search_handler import SearchHandler
+                search_handler = SearchHandler()
+                search_handler.filter_categories(
+                    search_text,
+                    Data,
+                    category_window,
+                )
+            except Exception:
+                # Fallback: show all categories
+                try:
+                    category_window["_table_countries_"].update(_rows(Data.categories))
+                except Exception:
+                    pass
+        else:
+            # No filter active, show all categories
+            try:
+                category_window["_table_countries_"].update(_rows(Data.categories))
+            except Exception:
+                pass
     elapsed = time.time() - start
     logger.info(
         "Xtream load complete in %.2fs categories=%d live=%d vod=%d",
@@ -281,9 +357,33 @@ def _auto_restore_last(
             Data.filename = p
             Data.categories = get_categories()
             if category_window:
-                category_window["_table_countries_"].update(
-                    _rows(Data.categories)
-                )
+                # Check if there's an active category search filter
+                search_text = ""
+                try:
+                    search_text = category_window["_cat_search_"].get()
+                except Exception:
+                    pass
+
+                # If there's an active filter, apply it; otherwise show all categories
+                if search_text and search_text.strip():
+                    try:
+                        from utils.search_handler import SearchHandler
+                        search_handler = SearchHandler()
+                        search_handler.filter_categories(
+                            search_text,
+                            Data,
+                            category_window,
+                        )
+                    except Exception:
+                        # Fallback: show all categories
+                        category_window["_table_countries_"].update(
+                            _rows(Data.categories)
+                        )
+                else:
+                    # No filter active, show all categories
+                    category_window["_table_countries_"].update(
+                        _rows(Data.categories)
+                    )
             return True
         return False
 

@@ -27,6 +27,14 @@ Although many parts of the codebase (including the GUI) are technically portable
 
 
 ## What's New (v1.5)
+- **Global Search (Ctrl+F)**
+  - Search across ALL channels and videos instantly (not limited to categories)
+  - Case-insensitive, starts-with matching for fast filtering
+  - Live results as you type
+  - Double-click or press Enter to play directly from search results
+  - Shows channel title, category, rating, and year in organized table
+  - Access via View menu or Ctrl+F keyboard shortcut
+
 - **Major UI Overhaul**
   - Changed the layout from static to dynamic windows which can be decoupled from the main video canvas (winamp like)
   - Clean, modern tabbed interface for all settings windows
@@ -84,6 +92,13 @@ Although many parts of the codebase (including the GUI) are technically portable
 ---
 
 ## Features
+- **Global Search**
+  - Search across entire catalog with Ctrl+F
+  - Instant filtering as you type
+  - Case-insensitive, starts-with matching
+  - Direct playback from search results
+  - Shows channel details: title, category, rating, year
+
 - **Modern Tabbed Interface**
   - Settings organized in tabs for easy navigation
   - Professional UI with proper spacing and alignment
@@ -213,6 +228,13 @@ src/
 - Double-click or right-click for **Full Screen / Record / Play in VLC**.  
 - **Record** writes MP4 files to the `records/` directory.
 - When idle (no playback), the video canvas shows the placeholder `background.jpg`.
+
+### Global Search
+- Press **Ctrl+F** or go to **View → Global Search**
+- Type to search across ALL channels and videos (not limited to categories)
+- Results filter instantly as you type (case-insensitive, starts-with matching)
+- Double-click a result or press Enter to play immediately
+- Shows title, category, rating, and year for easy identification
 
 ### Customize Your Experience
 - **Settings → UI Settings**: Choose your theme, customize fonts, apply quick presets

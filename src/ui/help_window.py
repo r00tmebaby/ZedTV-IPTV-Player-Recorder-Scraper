@@ -38,7 +38,15 @@ _SECTIONS = [
         "playback_controls",
         "Playback & Controls",
         "Double‑click a channel or press Enter to start playback. "
-        "Right‑click channel list for Full Screen, Record, Play in VLC, Stop. ESC stops playback.",
+        "Right‑click channel list for Full Screen, Record, Play in VLC, Stop. ESC stops playback.\n\n"
+        "Playback Controls:\n"
+        "• Use on-screen buttons to seek forward/backward (±10s, ±30s)\n"
+        "• Pause/Play button or press SPACE to toggle playback\n"
+        "• Arrow keys: Left/Right to seek ±5 seconds\n"
+        "• ⛶ button: Toggle fullscreen (or press F key)\n"
+        "• CC button: Select subtitle tracks\n"
+        "• 🔊 button: Select audio tracks\n"
+        "• ⚡ button: Change playback speed (0.25x to 2x)",
     ),
     (
         "recording",
