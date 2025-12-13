@@ -3,6 +3,7 @@
 [![Tests](https://img.shields.io/badge/tests-339%20passing-brightgreen)](https://github.com/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper/actions)
 [![Python](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/github/license/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper)](LICENSE)
+[![Changelog](https://img.shields.io/github/license/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper)](CHANGELOG)
 
 <img src="MEDIA/1.png" alt="ZeDTV screenshot">
 <img src="MEDIA/11.png" alt="ZeDTV screenshot">
