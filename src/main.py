@@ -474,6 +474,7 @@ async def main() -> None:
         except Exception as e:
             log.error("play() failed: %s", e, exc_info=True)
             sg.popup_error(f"Playback failed: {e}", title="Error", keep_on_top=True)
+
     # Helper function to refresh playback timer
     def update_time_display():
         """Refresh the playback timer and control button states."""
@@ -576,7 +577,7 @@ async def main() -> None:
 
             # Check if media is playing for playback controls
             has_media = Player.players and (Player.players.is_playing() or
-                                           (Player.players.get_state() in [1, 2, 3, 4] if Player.players else False))
+                                            (Player.players.get_state() in [1, 2, 3, 4] if Player.players else False))
 
             if button_key == "_pause_play_":
                 if has_media:
@@ -855,7 +856,7 @@ async def main() -> None:
                 values, window_manager, Player
             )
         elif ev == "Stop":
-            stop()
+            stop_playback()
             playback_controls.update_controls_state(False)
             log.debug("Disabled control buttons after stop")
         elif ev in [
@@ -889,7 +890,7 @@ async def main() -> None:
                     except Exception as e:
                         log.error("Failed to exit fullscreen with ESC: %s", e, exc_info=True)
                 else:
-                    stop()
+                    stop_playback()
                     playback_controls.update_controls_state(False)
                     log.debug("ESC pressed - playback stopped")
             # Space key - pause/play
@@ -931,7 +932,6 @@ async def main() -> None:
                         log.debug("F pressed - exited fullscreen")
 
     log.info("Application exiting - cleanup in progress")
-
 
 
 if __name__ == "__main__":

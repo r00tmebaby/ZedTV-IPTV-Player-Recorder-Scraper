@@ -6,4 +6,5 @@ exclude = .git,__pycache__,.venv,build,dist,PySimpleGUI.py,player.py
 # F541: f-string without placeholders - OK in tests
 per-file-ignores =
     tests/*.py:E402,E501,F541
+    src/main.py:E402
 

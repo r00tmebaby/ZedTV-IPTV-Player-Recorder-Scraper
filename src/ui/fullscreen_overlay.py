@@ -371,14 +371,15 @@ class FullscreenOverlay:
             rate = time_info.get('rate', 1.0)
 
             log.debug("Time values - current_sec=%s (type=%s), total_sec=%s (type=%s), rate=%s (type=%s)",
-                     current_sec, type(current_sec).__name__,
-                     total_sec, type(total_sec).__name__,
-                     rate, type(rate).__name__)
+                      current_sec, type(current_sec).__name__,
+                      total_sec, type(total_sec).__name__,
+                      rate, type(rate).__name__)
 
             # Format time strings (input is seconds, not milliseconds)
             def format_time(seconds_float):
                 try:
-                    log.debug("format_time called with seconds=%s (type=%s)", seconds_float, type(seconds_float).__name__)
+                    log.debug("format_time called with seconds=%s (type=%s)",
+                              seconds_float, type(seconds_float).__name__)
                     total_seconds = int(seconds_float)
                     log.debug("  total_seconds=%s", total_seconds)
                     mins = total_seconds // 60
@@ -530,4 +531,3 @@ class FullscreenOverlay:
         except Exception as e:
             log.error("Failed to exit fullscreen: %s", e, exc_info=True)
             self._exiting = False  # Reset on error so user can try again
-
