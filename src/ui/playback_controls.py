@@ -409,13 +409,16 @@ class PlaybackControls:
                 "_speed_",
             ]
 
+            # Only log when state changes to reduce spam
+            if not hasattr(self, '_last_controls_state') or self._last_controls_state != is_playing:
+                log.debug("Control buttons state changed: is_playing=%s", is_playing)
+                self._last_controls_state = is_playing
+
             for button_key in control_buttons:
                 try:
                     self.window[button_key].update(disabled=not is_playing)
                 except Exception as e:
                     log.debug("Failed to update button %s: %s", button_key, e)
-
-            log.debug("Updated control buttons state: is_playing=%s", is_playing)
         except Exception as e:
             log.error("Failed to update controls state: %s", e, exc_info=True)
 

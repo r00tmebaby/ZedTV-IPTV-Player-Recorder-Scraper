@@ -5,6 +5,7 @@
 [![License](https://img.shields.io/github/license/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper)](LICENSE)
 
 <img src="MEDIA/1.png" alt="ZeDTV screenshot">
+<img src="MEDIA/11.png" alt="ZeDTV screenshot">
 <img src="MEDIA/2.png" alt="ZeDTV screenshot">
 <img src="MEDIA/3.png" alt="ZeDTV screenshot">
 <img src="MEDIA/4.png" alt="ZeDTV screenshot">
@@ -26,85 +27,22 @@ It relies on Windows-specific components such as `ctypes.windll.user32` and `lib
 Although many parts of the codebase (including the GUI) are technically portable, the media backend currently depends on Windows-only libraries, so macOS and Linux are **not supported** at this time.
 
 
-## What's New (v1.6)
-- **Fullscreen Overlay Controls**
-  - New keyboard-friendly control bar with icons in fullscreen
-  - ESC reliably exits fullscreen even when buttons have focus
-  - Added keyboard shortcuts for subtitles, audio, speed, seeking, pause/play
-  - Overlay toggles with `C` and fades out when not needed
-- **Improved Window Management**
-  - Fullscreen minimize/maximize flow fixed so the entire app minimizes together
-  - Control buttons stay disabled until playback actually starts, avoiding stuck states
-- **Playback Enhancements**
-  - Subtitles menu available directly in fullscreen overlay
-  - Video timers reset correctly when starting a new VOD and update live (with playback speed display)
-  - Settings persistence fixes (subtitle/audio/speed remembered when toggling fullscreen)
-- **Global Search Improvements**
-  - Ctrl+F window shows channel metadata and double-click to play
-  - Searches entire catalog regardless of selected category
+## What's New in v1.6.1
 
-## What's New (v1.5)
-- **Global Search (Ctrl+F)**
-  - Search across ALL channels and videos instantly (not limited to categories)
-  - Case-insensitive, starts-with matching for fast filtering
-  - Live results as you type
-  - Double-click or press Enter to play directly from search results
-  - Shows channel title, category, rating, and year in organized table
-  - Access via View menu or Ctrl+F keyboard shortcut
+### Latest Release Highlights
+- **Fullscreen Timer Display** - Real-time playback timer in fullscreen overlay with speed indicator
+- **Visual Selection** - Playing videos auto-select their category and highlight in channel list
+- **ESC Key Fix** - Reliable fullscreen exit even after extensive seeking
+- **Enhanced Logging** - Comprehensive debug logging for troubleshooting
 
-- **Major UI Overhaul**
-  - Changed the layout from static to dynamic windows which can be decoupled from the main video canvas (winamp like)
-  - Clean, modern tabbed interface for all settings windows
-  - Filter categories and channels with instant search boxes
-  - New Logs menu with options to view current log and open logs folder
-  - Added background image when idle (no playback)
-  - Added loading spinner when loading M3U or switching accounts
-  - Improved overall user experience and navigation
-  - Added helpful tooltips on buttons and inputs
-  - Added help menu with links to README, issues, license
-  - Consistent design language and polished look & feel
-  - Improved usability with logical grouping and better spacing
-  - 70+ color themes with live preview
-  - Customizable fonts and sizes for all UI elements
-  - One-click font size presets (Small/Medium/Large/XL)
-  - Better readability with larger fonts throughout
-  - Reorganized VLC settings into tabs (Network, Video & Audio, Advanced)
-  - Added dedicated logging settings window with clear options
-  - IP Info window with working Refresh button
-  - Consistent layouts across all settings windows
-  - Improved error handling with user-friendly messages
-  - Fixed various minor bugs and UI glitches
-  - Settings organized into logical groups (no more endless scrolling!)
-  - Improved spacing, padding, and button alignment throughout
-  - Larger fonts and better readability across the board
-  
-- **UI Settings** (tabbed)
-  - **Theme tab**: 70+ color themes with live preview
-  - **Fonts tab**: Customize font family and sizes for all UI elements
-  - **Presets tab**: One-click font size presets (Small/Medium/Large/XL)
-  
-- **VLC Settings** (tabbed)
-  - **Network tab**: Buffer settings for smooth streaming
-  - **Video & Audio tab**: Hardware acceleration, output options, volume control
-  - **Advanced tab**: Performance tweaks and maintenance options
-  
-- **Logging Settings**
-  - Configure log levels, file rotation, retention policies
-  - Mirror logs to console for debugging
-  - Clean, organized interface with helpful descriptions
-  
-- **Fixed Features**
-  - IP Info now works properly with Refresh button
-  - Better error handling with user-friendly messages
-  - All settings windows use consistent, polished layouts
-  
-- **Previous Features (v1.4)**
-  - Xtream Codes integration with account management
-  - VLC player settings (network buffering, hardware acceleration)
-  - Session restore - remembers your last account/M3U
-  - Recording to MP4 with live preview
-  - Fast startup (1-2 seconds)
-  - 113 unit tests ensuring reliability
+### Recent Updates (v1.6.0)
+- **Fullscreen Overlay Controls** - Keyboard-friendly controls with beautiful icons
+- **Configurable Shortcuts** - Customize all keyboard bindings in UI Settings
+- **Window Management** - Smooth minimize/maximize for fullscreen mode
+- **Settings Persistence** - Subtitles, audio, and speed remembered across fullscreen toggles
+
+**📋 [View Full Changelog](CHANGELOG.md)** - Complete version history with detailed changes
+
 
 ---
 
@@ -113,8 +51,17 @@ Although many parts of the codebase (including the GUI) are technically portable
   - Search across entire catalog with Ctrl+F
   - Instant filtering as you type
   - Case-insensitive, starts-with matching
-  - Direct playback from search results
+  - Direct playback from search results with double-click or Enter
+  - Auto-selects category and channel in UI for visual context
   - Shows channel details: title, category, rating, year
+
+- **Fullscreen Experience**
+  - Dynamic timer display showing current/total time with playback speed
+  - Keyboard-friendly overlay controls (toggle with 'C' key)
+  - Reliable ESC key to exit fullscreen
+  - Subtitle, audio, and speed menus accessible in fullscreen
+  - All controls available via keyboard shortcuts
+  - Timer updates every 500ms with automatic HH:MM:SS formatting
 
 - **Modern Tabbed Interface**
   - Settings organized in tabs for easy navigation
@@ -173,7 +120,7 @@ Although many parts of the codebase (including the GUI) are technically portable
 ## Installation
 
 ### Option 1: Windows Executable (Recommended)
-1. **Download** `ZedTV-IPTV-Player-v1.5.zip` from releases
+1. **Download** `ZedTV-IPTV-Player-v1.6.1.zip` from releases
 2. **Extract** all files to a folder
 3. **Run** `ZedTV-IPTV-Player.exe`
 
@@ -250,8 +197,27 @@ src/
 - Press **Ctrl+F** or go to **View → Global Search**
 - Type to search across ALL channels and videos (not limited to categories)
 - Results filter instantly as you type (case-insensitive, starts-with matching)
-- Double-click a result or press Enter to play immediately
+- **Double-click** a result or press **Enter** to play immediately (no Play button needed)
+- When playback starts:
+  - Category is automatically selected in the left panel
+  - Channel list refreshes to show that category's content
+  - The playing channel/video is highlighted in the right panel
+  - Visual feedback shows exactly what's playing and where it belongs
 - Shows title, category, rating, and year for easy identification
+
+### Fullscreen Mode
+- Press **F** or right-click and select **Full Screen** to enter fullscreen
+- Press **C** to toggle the control overlay showing:
+  - Seek buttons (-30s, -10s, +10s, +30s)
+  - Pause/Play button
+  - Subtitle menu (S key)
+  - Audio track menu (A key)
+  - Playback speed menu (D key)
+  - **Dynamic timer** showing current/total time and playback speed
+  - Exit fullscreen button
+- Press **ESC** anytime to exit fullscreen (works reliably even after seeking)
+- All controls accessible via keyboard shortcuts for quick navigation
+- Timer updates every 500ms showing precise playback position
 
 ### Customize Your Experience
 - **Settings → UI Settings**: Choose your theme, customize fonts, apply quick presets

@@ -225,6 +225,25 @@ async def main() -> None:
     ).finalize()
     log.info("Main window created")
 
+    # Bind Ctrl+F (or configured key) to a custom __GLOBAL_SEARCH__ event
+    try:
+        global_search_key = ui_settings.get_key_binding("global_search")
+        # Bind both lowercase and uppercase variants for robustness
+        window.bind("<Control-f>", "__GLOBAL_SEARCH__")
+        window.bind("<Control-F>", "__GLOBAL_SEARCH__")
+        # If a custom key is configured, try binding it too
+        if isinstance(global_search_key, str) and global_search_key:
+            # Map known forms e.g. 'Control_L+f' to Tk format '<Control-f>'
+            parts = [p.strip() for p in global_search_key.split('+')]
+            if parts and parts[-1]:
+                key = parts[-1]
+                if key and len(key) == 1:
+                    window.bind("<Control-%s>" % key.lower(), "__GLOBAL_SEARCH__")
+                    window.bind("<Control-%s>" % key.upper(), "__GLOBAL_SEARCH__")
+        log.debug("Global search hotkeys bound")
+    except Exception as e:
+        log.debug("Failed to bind global search hotkeys: %s", e)
+
     # Create window manager and child windows
     splash.update_progress(50, "Creating panels...")
     window_manager = WindowManager(window)
@@ -370,27 +389,55 @@ async def main() -> None:
     async def play_from_search(channel_dict: dict):
         """
         Play a channel selected from global search.
-
-        Args:
-            channel_dict: Channel dictionary from search results
+        Also auto-selects its category and channel in the UI.
         """
         try:
-            # Extract URL and title
             url = channel_dict.get("url", "")
             title = channel_dict.get("title", "Unknown")
+            category = channel_dict.get("category", "")
 
             if not url:
                 log.warning("No URL found for channel: %s", title)
                 sg.popup_error("Cannot play: No URL found", title="Error", keep_on_top=True)
                 return
 
-            log.info("Playing from global search: %s", title)
+            log.info("Playing from global search: %s (category: %s)", title, category)
 
-            # Create media object
-            media = f"#EXTINF:-1,{title}\n{url}"
+            # Step 1: Select the category in the left panel
+            if category:
+                try:
+                    window_manager.select_category_by_name(category)
+                    log.debug("Category selected visually: %s", category)
 
-            # Play the media
-            await play(media, fullscreen=False)
+                    # Give UI time to update and load channels for this category
+                    # The category selection will trigger channel list refresh
+                    await asyncio.sleep(0.3)  # Small delay for UI update
+
+                except Exception as e:
+                    log.debug("Failed to select category '%s': %s", category, e)
+
+            # Step 2: Create VLC media and start playback
+            try:
+                media_obj = Player.vlc_instance.media_new(url)
+                Data.media_instance = media_obj
+                log.debug("Created media object for URL: %s", url)
+            except Exception as e:
+                log.error("Failed to create media object from URL: %s", e, exc_info=True)
+                sg.popup_error(f"Failed to create media: {e}", title="Error", keep_on_top=True)
+                return
+
+            # Play directly with media object
+            await play(media_obj, fullscreen=False)
+            log.info("Playback started from global search: %s", title)
+
+            # Step 3: Select the channel in the right panel (after playback starts)
+            try:
+                # Give a moment for channels list to populate
+                await asyncio.sleep(0.2)
+                window_manager.select_channel_by_title(title)
+                log.debug("Channel selected visually: %s", title)
+            except Exception as e:
+                log.debug("Failed to select channel in UI: %s", e)
 
             # Enable control buttons
             playback_controls.update_controls_state(True)
@@ -399,22 +446,34 @@ async def main() -> None:
             log.error("Failed to play from search: %s", e, exc_info=True)
             sg.popup_error(f"Failed to play: {e}", title="Error", keep_on_top=True)
 
-    # Create playback callback wrappers
     async def play(media, fullscreen=False):
-        """Play media wrapper."""
-        await play_media(
-            media,
-            fullscreen,
-            Player,
-            window,
-            window["_canvas_video_"],
-            background_mgr.clear_background,
-        )
+        """Play media wrapper: accepts VLC media or EXTINF string and normalizes to media object."""
+        try:
+            # Normalize to VLC media instance
+            if isinstance(media, str):
+                # Try to parse URL from EXTINF-like string; else treat entire string as URL
+                url = media.strip()
+                if "\n" in url:
+                    url = url.split("\n", 1)[1].strip()
+                media_obj = Player.vlc_instance.media_new(url)
+                Data.media_instance = media_obj
+                media_to_play = media_obj
+                log.debug("Normalized string media to VLC media: %s", url)
+            else:
+                Data.media_instance = media
+                media_to_play = media
 
-    def stop():
-        """Stop playback wrapper."""
-        stop_playback(Player, lambda: background_mgr.show_background(Player))
-
+            await play_media(
+                media_to_play,
+                fullscreen,
+                Player,
+                window,
+                window["_canvas_video_"],
+                background_mgr.clear_background,
+            )
+        except Exception as e:
+            log.error("play() failed: %s", e, exc_info=True)
+            sg.popup_error(f"Playback failed: {e}", title="Error", keep_on_top=True)
     # Helper function to refresh playback timer
     def update_time_display():
         """Refresh the playback timer and control button states."""
@@ -462,6 +521,10 @@ async def main() -> None:
         # Normalize menu event text (strip '&' accelerators)
         ev = event.replace("&", "") if isinstance(event, str) else event
 
+        # Translate the bound hotkey event into the normal handler
+        if ev == "__GLOBAL_SEARCH__":
+            ev = global_search_key
+
         # Start EPG loading in background after first event loop
         if not epg_loading_started:
             epg_loading_started = True
@@ -481,15 +544,27 @@ async def main() -> None:
                 all_channels = get_all_channels()
                 if not all_channels:
                     sg.popup("No channels loaded. Please open an M3U file or Xtream account first.",
-                            title="Global Search", keep_on_top=True)
+                             title="Global Search", keep_on_top=True)
                     log.info("Global search: no channels available")
                 else:
                     log.info("Opening global search with %d channels", len(all_channels))
-                    # Create async wrapper for play callback
+
+                    # Storage for selected channel
+                    selected_channel = {'data': None}
+
+                    # Callback that stores the channel and posts event to main loop
                     def sync_play_wrapper(channel_dict):
-                        asyncio.create_task(play_from_search(channel_dict))
+                        selected_channel['data'] = channel_dict
+                        log.debug("Stored channel for playback: %s", channel_dict.get('title', 'Unknown'))
+                        # Post event to main window to trigger playback
+                        try:
+                            window.write_event_value('__PLAY_FROM_SEARCH__', channel_dict)
+                            log.debug("Posted __PLAY_FROM_SEARCH__ event")
+                        except Exception as e:
+                            log.error("Failed to post playback event: %s", e, exc_info=True)
 
                     show_global_search(all_channels, sync_play_wrapper)
+                    log.debug("Global search closed")
             except Exception as e:
                 log.error("Failed to open global search: %s", e, exc_info=True)
                 sg.popup_error(f"Failed to open global search: {e}", title="Error", keep_on_top=True)
@@ -554,6 +629,19 @@ async def main() -> None:
         if isinstance(event, tuple):
             event_handler.handle_channel_table_click(event)
             channel_handler.last_channel_idx = event_handler.last_channel_idx
+
+        # Handle playback from global search
+        if ev == "__PLAY_FROM_SEARCH__":
+            try:
+                channel_dict = values.get("__PLAY_FROM_SEARCH__")
+                if channel_dict:
+                    log.info("Processing playback from search: %s", channel_dict.get('title', 'Unknown'))
+                    await play_from_search(channel_dict)
+                else:
+                    log.warning("No channel data in __PLAY_FROM_SEARCH__ event")
+            except Exception as e:
+                log.error("Failed to play from search: %s", e, exc_info=True)
+            continue
 
         # Handle exit from fullscreen
         if ev == "__EXIT_FULLSCREEN__":
@@ -844,42 +932,6 @@ async def main() -> None:
 
     log.info("Application exiting - cleanup in progress")
 
-
-def update_time_display():
-        """Refresh the playback timer and control button states."""
-        try:
-            has_media = False
-            if Player.players:
-                try:
-                    state = Player.players.get_state()
-                    has_media = state in [0, 1, 2, 3, 4]
-                except Exception:
-                    has_media = Player.players.is_playing()
-
-            if has_media:
-                time_info = playback_controls.get_time_info()
-                current_str = playback_controls.format_time(time_info['current'])
-                total_str = playback_controls.format_time(time_info['total'])
-                rate = time_info.get('rate', 1.0)
-                if abs(rate - 1.0) > 0.01:
-                    time_display = f"{current_str} / {total_str} ({rate}x)"
-                else:
-                    time_display = f"{current_str} / {total_str}"
-                window["_time_display_"].update(time_display)
-                try:
-                    if Player.players.get_state() == 4:
-                        window["_pause_play_"].update("▶ Play")
-                    else:
-                        window["_pause_play_"].update("⏸ Pause")
-                except Exception:
-                    window["_pause_play_"].update("⏸ Pause")
-                playback_controls.update_controls_state(True)
-            else:
-                window["_time_display_"].update("00:00 / 00:00")
-                window["_pause_play_"].update("⏸ Pause")
-                playback_controls.update_controls_state(False)
-        except Exception as exc:
-            log.debug("Failed to update time display: %s", exc)
 
 
 if __name__ == "__main__":

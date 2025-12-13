@@ -360,3 +360,77 @@ class WindowManager:
             window_list.append(self.channel_window)
         log.debug("Active windows count: %d", len(window_list))
         return window_list
+
+    def select_category_by_name(self, name: str) -> None:
+        """Select a category in the category table by its exact name and refresh channels."""
+        try:
+            if not self.category_window or not name:
+                return
+            table = self.category_window["_table_countries_"]
+            data = table.Values or []
+            # find row index where first column equals name
+            idx = next((i for i, row in enumerate(data) if row and str(row[0]).strip() == name.strip()), None)
+            if idx is None:
+                return
+            # select and scroll to item
+            try:
+                table.update(select_rows=[idx])
+            except Exception:
+                pass
+            # fire selection event to update channels list
+            try:
+                self.category_window.write_event_value("_table_countries_", ("row", idx))
+            except Exception:
+                pass
+        except Exception:
+            # non-fatal
+            pass
+
+    def select_channel_by_title(self, title: str) -> None:
+        """
+        Select a channel in the channel table by its title.
+
+        Args:
+            title: The title of the channel to select
+        """
+        try:
+            if not self.channel_window or not title:
+                log.debug("Cannot select channel: window=%s, title=%s", self.channel_window, title)
+                return
+
+            table = self.channel_window["_iptv_content_"]
+            data = table.Values or []
+
+            # Find row index where the first column contains the title
+            # Strip and normalize for comparison
+            search_title = title.strip().lower()
+            idx = None
+
+            for i, row in enumerate(data):
+                if row and len(row) > 0:
+                    row_title = str(row[0]).strip().lower()
+                    if search_title in row_title or row_title in search_title:
+                        idx = i
+                        break
+
+            if idx is None:
+                log.debug("Channel not found in table: %s", title)
+                return
+
+            log.debug("Selecting channel at index %d: %s", idx, title)
+
+            # Select and scroll to the item
+            try:
+                table.update(select_rows=[idx])
+                # Try to scroll to make it visible (if supported)
+                if hasattr(table, 'Widget'):
+                    try:
+                        table.Widget.see(idx)
+                    except Exception:
+                        pass
+                log.debug("Channel selected successfully")
+            except Exception as e:
+                log.debug("Failed to select channel: %s", e)
+
+        except Exception as e:
+            log.error("Error selecting channel: %s", e, exc_info=True)

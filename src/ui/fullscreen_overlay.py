@@ -223,6 +223,20 @@ class FullscreenOverlay:
         separator2 = tk.Frame(btn_row, bg='#555555', width=2, height=30)
         separator2.pack(side=tk.LEFT, padx=8)
 
+        # Timer display (left side of exit button)
+        separator3 = tk.Frame(btn_row, bg='#555555', width=2, height=30)
+        separator3.pack(side=tk.LEFT, padx=8)
+
+        self.time_label = tk.Label(
+            btn_row,
+            text="00:00 / 00:00",
+            bg='#000000',
+            fg='#ecf0f1',
+            font=('Arial', 10, 'bold'),
+            padx=10
+        )
+        self.time_label.pack(side=tk.LEFT, padx=5)
+
         # Exit fullscreen (ESC key)
         self.btn_exit = tk.Button(
             btn_row,
@@ -238,7 +252,7 @@ class FullscreenOverlay:
         )
         self.btn_exit.pack(side=tk.LEFT, padx=2)
 
-        log.info("Control buttons created with keyboard shortcuts shown")
+        log.info("Control buttons created with keyboard shortcuts and timer")
 
     def _bind_keyboard_events(self):
         """Bind all keyboard shortcuts."""
@@ -300,6 +314,8 @@ class FullscreenOverlay:
                 self.overlay_frame.place(relx=0, rely=1.0, relwidth=1.0, anchor='sw')
                 self.overlay_frame.update()
                 self.visible = True
+                # Start timer updates
+                self._start_timer_updates()
                 log.info("Controls displayed")
             except Exception as e:
                 log.error("Failed to show overlay: %s", e, exc_info=True)
@@ -308,11 +324,131 @@ class FullscreenOverlay:
         """Hide the overlay controls."""
         if self.visible:
             try:
+                # Stop timer updates
+                self._stop_timer_updates()
                 self.overlay_frame.place_forget()
                 self.visible = False
                 log.info("Controls hidden")
             except Exception as e:
                 log.error("Failed to hide overlay: %s", e, exc_info=True)
+
+    def _start_timer_updates(self):
+        """Start periodic timer updates."""
+        try:
+            self._update_timer()
+        except Exception as e:
+            log.error("Failed to start timer updates: %s", e)
+
+    def _stop_timer_updates(self):
+        """Stop periodic timer updates."""
+        try:
+            if hasattr(self, '_timer_job'):
+                self.parent.after_cancel(self._timer_job)
+                delattr(self, '_timer_job')
+        except Exception as e:
+            log.debug("Failed to stop timer updates: %s", e)
+
+    def _update_timer(self):
+        """Update the timer display with current playback time."""
+        try:
+            if not self.visible or self._exiting:
+                log.debug("Timer update skipped: visible=%s, exiting=%s", self.visible, self._exiting)
+                return
+
+            log.debug("Timer update starting...")
+
+            # Get time info from playback controls
+            try:
+                time_info = self.controls.get_time_info()
+                log.debug("Got time_info: %s", time_info)
+            except Exception as e:
+                log.error("Failed to get time info: %s", e, exc_info=True)
+                raise
+
+            # get_time_info() returns seconds as floats, not milliseconds!
+            current_sec = time_info.get('current', 0)
+            total_sec = time_info.get('total', 0)
+            rate = time_info.get('rate', 1.0)
+
+            log.debug("Time values - current_sec=%s (type=%s), total_sec=%s (type=%s), rate=%s (type=%s)",
+                     current_sec, type(current_sec).__name__,
+                     total_sec, type(total_sec).__name__,
+                     rate, type(rate).__name__)
+
+            # Format time strings (input is seconds, not milliseconds)
+            def format_time(seconds_float):
+                try:
+                    log.debug("format_time called with seconds=%s (type=%s)", seconds_float, type(seconds_float).__name__)
+                    total_seconds = int(seconds_float)
+                    log.debug("  total_seconds=%s", total_seconds)
+                    mins = total_seconds // 60
+                    log.debug("  mins=%s", mins)
+                    secs = total_seconds % 60
+                    log.debug("  secs=%s", secs)
+                    hours = mins // 60
+                    log.debug("  hours=%s", hours)
+                    mins = mins % 60
+                    log.debug("  final mins=%s", mins)
+
+                    if hours > 0:
+                        result = f"{int(hours):02d}:{int(mins):02d}:{int(secs):02d}"
+                        log.debug("  formatted (with hours): %s", result)
+                        return result
+                    result = f"{int(mins):02d}:{int(secs):02d}"
+                    log.debug("  formatted (no hours): %s", result)
+                    return result
+                except Exception as e:
+                    log.error("format_time failed: %s", e, exc_info=True)
+                    raise
+
+            try:
+                current_str = format_time(current_sec)
+                log.debug("current_str=%s", current_str)
+            except Exception as e:
+                log.error("Failed to format current time: %s", e, exc_info=True)
+                raise
+
+            try:
+                total_str = format_time(total_sec)
+                log.debug("total_str=%s", total_str)
+            except Exception as e:
+                log.error("Failed to format total time: %s", e, exc_info=True)
+                raise
+
+            # Show playback speed if not normal
+            try:
+                if abs(rate - 1.0) > 0.01:
+                    time_display = f"{current_str} / {total_str} ({rate}x)"
+                else:
+                    time_display = f"{current_str} / {total_str}"
+                log.debug("time_display=%s", time_display)
+            except Exception as e:
+                log.error("Failed to build time display string: %s", e, exc_info=True)
+                raise
+
+            try:
+                self.time_label.config(text=time_display)
+                log.debug("Timer label updated successfully: %s", time_display)
+            except Exception as e:
+                log.error("Failed to update label widget: %s", e, exc_info=True)
+                raise
+
+            # Schedule next update (every 500ms)
+            try:
+                self._timer_job = self.parent.after(500, self._update_timer)
+                log.debug("Next timer update scheduled")
+            except Exception as e:
+                log.error("Failed to schedule next timer update: %s", e, exc_info=True)
+                raise
+
+        except Exception as e:
+            log.error("Timer update failed with exception: %s", e, exc_info=True)
+            # Try again in 1 second
+            try:
+                self._timer_job = self.parent.after(1000, self._update_timer)
+                log.debug("Scheduled retry timer update in 1 second")
+            except Exception as retry_error:
+                log.error("Failed to schedule retry: %s", retry_error, exc_info=True)
 
     def destroy(self):
         """Clean up the overlay."""
@@ -381,9 +517,17 @@ class FullscreenOverlay:
         self._exiting = True
         log.info("Exiting fullscreen mode")
         try:
+            # Stop timer updates before exiting
+            if hasattr(self, '_timer_job'):
+                try:
+                    self.parent.after_cancel(self._timer_job)
+                except Exception:
+                    pass
+
             self.exit_callback()
             log.info("Fullscreen exited successfully")
+            # Note: Don't reset _exiting here as the window will be destroyed
         except Exception as e:
             log.error("Failed to exit fullscreen: %s", e, exc_info=True)
-            self._exiting = False  # Reset on error
+            self._exiting = False  # Reset on error so user can try again
 

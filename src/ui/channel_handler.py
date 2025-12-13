@@ -46,43 +46,53 @@ class ChannelHandler:
         Returns:
             Selected channel index or None
         """
-        log.debug("Getting selected channel index for event: %s", event)
+        log.debug("[CH] event=%r values_keys=%r", event, list(values.keys())[:6])
         selected_idx = None
 
-        # Primary selection from table widget
-        if "_iptv_content_" in values and len(values["_iptv_content_"]) == 1:
-            selected_idx = values["_iptv_content_"][0]
-            self.last_channel_idx = selected_idx
-            log.debug("Channel selected from table: index=%d", selected_idx)
+        # Primary selection from values for Table element
+        try:
+            if "_iptv_content_" in values and values["_iptv_content_"]:
+                log.debug("[CH] values['_iptv_content_']=%r", values["_iptv_content_"])
+                # PySimpleGUI Table returns a list of selected row indices
+                sel = values["_iptv_content_"]
+                if isinstance(sel, list) and sel:
+                    selected_idx = sel[0]
+                    self.last_channel_idx = selected_idx
+                    log.debug("Channel selected from values (Table): index=%d", selected_idx)
+        except Exception as e:
+            log.debug("[CH] No selection in values: %s", e)
 
-        # Fallback: use last remembered selection for context menu actions
-        if selected_idx is None and event in [
-            "Record",
-            "Full Screen",
-            "Play in VLC",
-        ]:
-            if self.last_channel_idx is not None:
-                selected_idx = self.last_channel_idx
-                log.debug(
-                    "Using last_channel_idx=%d for event %s",
-                    selected_idx,
-                    event,
-                )
+        # Fallback: handle tuple event emitted by Table clicks
+        if selected_idx is None and isinstance(event, tuple):
+            try:
+                # event like ("_iptv_content_", "row", idx)
+                if len(event) >= 3 and event[0] == "_iptv_content_" and event[1] == "row":
+                    idx = int(event[2])
+                    selected_idx = idx
+                    self.last_channel_idx = selected_idx
+                    log.debug("Channel selected from event tuple: index=%d", selected_idx)
+            except Exception as e:
+                log.debug("[CH] Failed to parse tuple event: %s", e)
 
-        # Final fallback: read current selection directly from listbox element
+        # Fallback: read selection directly from Table element
         if selected_idx is None and channel_window:
             try:
-                cur_sel = channel_window[
-                    "_iptv_content_"
-                ].Widget.curselection()
-                if cur_sel:
-                    selected_idx = cur_sel[0]
-                    self.last_channel_idx = selected_idx
-                    log.debug(
-                        "Channel selected from listbox: index=%d", selected_idx
-                    )
+                table_elem = channel_window["_iptv_content_"]
+                log.debug("[CH] Table.SelectedRows=%r", getattr(table_elem, "SelectedRows", None))
+                if hasattr(table_elem, "SelectedRows"):
+                    sel_rows = table_elem.SelectedRows
+                    if sel_rows:
+                        selected_idx = sel_rows[0]
+                        self.last_channel_idx = selected_idx
+                        log.debug("Channel selected from Table.SelectedRows: index=%d", selected_idx)
             except Exception as e:
-                log.error("Failed to read listbox selection: %s", e)
+                log.error("[CH] Failed to read Table selection: %s", e)
+
+        # Fallback: use last remembered selection for context menu actions
+        if selected_idx is None and event in ["Record", "Full Screen", "Play in VLC"]:
+            if self.last_channel_idx is not None:
+                selected_idx = self.last_channel_idx
+                log.debug("Using last_channel_idx=%d for event %s", selected_idx, event)
 
         return selected_idx
 
@@ -98,7 +108,7 @@ class ChannelHandler:
         Returns:
             Tuple of (title, media_link) or None if parsing fails
         """
-        log.debug("Parsing channel block at index: %d", selected_idx)
+        log.debug("[CH] parse_channel_block idx=%d len(selected_list)=%d", selected_idx, len(Data.selected_list or []))
         try:
             block = Data.selected_list[selected_idx]
             parts = block.split("\n")
@@ -125,7 +135,7 @@ class ChannelHandler:
 
             title = title.replace("|", "")
 
-            log.info("Channel parsed: title='%s', url='%s'", title, media_link)
+            log.info("[CH] Channel parsed: title='%s', url='%s'", title, media_link)
             return (title, media_link)
 
         except Exception as e:
@@ -155,7 +165,7 @@ class ChannelHandler:
             player_instance: Player instance
             play_callback: Async callback for playing media
         """
-        log.info("Handling channel playback: event=%s", event)
+        log.info("[CH] handle_channel_playback event=%s values_keys=%r", event, list(values.keys())[:6])
 
         # Get selected channel index
         selected_idx = self.get_selected_channel_index(
@@ -163,6 +173,7 @@ class ChannelHandler:
         )
 
         if selected_idx is None:
+            log.warning("[CH] selected_idx=None for event=%s", event)
             if event != "_iptv_content_":
                 log.warning("No channel selected for playback")
                 try:
@@ -227,23 +238,21 @@ class ChannelHandler:
 
         # Handle normal/fullscreen playback
         log.info(
-            "Starting %s playback: %s",
+            "[CH] Starting %s playback: '%s' -> %s",
             "fullscreen" if event == "Full Screen" else "normal",
             title,
+            media_link,
         )
         try:
-            Data.media_instance = player_instance.vlc_instance.media_new(
-                media_link
-            )
+            log.debug("[CH] Creating media instance via vlc_instance.media_new")
+            Data.media_instance = player_instance.vlc_instance.media_new(media_link)
+            log.debug("[CH] Media instance created: %r", Data.media_instance)
             await asyncio.ensure_future(
                 play_callback(Data.media_instance, event == "Full Screen")
             )
+            log.info("[CH] play_callback completed")
         except Exception as e:
-            log.error(
-                "Failed to create media instance or start playback: %s",
-                e,
-                exc_info=True,
-            )
+            log.error("[CH] Failed to create media or start playback: %s", e, exc_info=True)
 
     async def handle_category_selection(
         self, values: dict, window_manager: Any, player_instance: Any

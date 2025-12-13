@@ -8,6 +8,7 @@ import logging
 from typing import Callable, List
 
 from . import PySimpleGUI as sg
+from core.config import ICON
 
 log = logging.getLogger(__name__)
 
@@ -35,6 +36,17 @@ class GlobalSearch:
         self.play_callback = play_callback
         self.filtered_channels = []
         self.window = None
+
+        # Precompute lowercase, cleaned names for fast filtering
+        self._search_index: List[tuple[str, dict]] = []
+        for ch in all_channels:
+            title = ch.get("title", "")
+            # Clean common prefixes for search purposes
+            cleaned = title
+            for prefix in ("[VOD]", "VOD -", "VOD:", "EU -", "EN -", "UK -", "US -"):
+                if cleaned.startswith(prefix):
+                    cleaned = cleaned[len(prefix):].strip()
+            self._search_index.append((cleaned.casefold(), ch))
 
         log.info("GlobalSearch initialized with %d channels", len(all_channels))
 
@@ -72,7 +84,6 @@ class GlobalSearch:
                     num_rows=20,
                     font=("Arial", 10),
                     enable_events=True,
-                    bind_return_key=True,
                     expand_x=True,
                     expand_y=True,
                     vertical_scroll_only=True,
@@ -80,7 +91,7 @@ class GlobalSearch:
                 )
             ],
             [
-                sg.Text("Tip: Double-click or press Enter to play", font=("Arial", 9, "italic")),
+                sg.Text("Tip: Double-click a row or press Enter to play", font=("Arial", 9, "italic")),
                 sg.Push(),
                 sg.Button("Close", key="_close_", size=(10, 1))
             ]
@@ -93,8 +104,16 @@ class GlobalSearch:
             resizable=True,
             finalize=True,
             keep_on_top=False,
-            modal=False
+            modal=False,
+            icon=ICON,
         )
+
+        # Bind double-click on table to _PLAY_ event and Enter key to _PLAY_
+        try:
+            self.window["_search_results_"].bind("<Double-Button-1>", "_PLAY_")
+            self.window.bind("<Return>", "_PLAY_")
+        except Exception:
+            pass
 
         # Update result count
         self._update_result_count()
@@ -143,25 +162,20 @@ class GlobalSearch:
         Args:
             search_text: Search query string
         """
-        search_text = search_text.strip().lower()
-
-        if not search_text:
-            # Show all channels if search is empty
+        query = search_text.strip().casefold()
+        if not query:
+            # Show all channels if search is empty (from original list)
             self.filtered_channels = self.all_channels.copy()
         else:
-            # Filter channels where title starts with search text (case-insensitive)
-            self.filtered_channels = [
-                ch for ch in self.all_channels
-                if ch.get("title", "").lower().startswith(search_text)
-            ]
+            # Use precomputed index for fast startswith matching on cleaned names
+            self.filtered_channels = [ch for name, ch in self._search_index if name.startswith(query)]
 
-        # Update table
-        self.window["_search_results_"].update(
-            values=self._format_table_data(self.filtered_channels)
-        )
-        self._update_result_count()
+        # Minimize redraw cost by updating only if window exists
+        if self.window:
+            self.window["_search_results_"].update(values=self._format_table_data(self.filtered_channels))
+            self._update_result_count()
 
-        log.debug("Filtered to %d channels with query: '%s'", len(self.filtered_channels), search_text)
+        log.debug("Filtered to %d channels with query: '%s'", len(self.filtered_channels), query)
 
     def _play_selected_channel(self) -> None:
         """Play the selected channel."""
@@ -178,11 +192,16 @@ class GlobalSearch:
                 channel = self.filtered_channels[row_index]
                 log.info("Playing channel from search: %s", channel.get("title", "Unknown"))
 
-                # Close search window
-                self.close()
+                # Call play callback FIRST (schedules async task)
+                try:
+                    self.play_callback(channel)
+                    log.debug("Play callback invoked successfully")
+                except Exception as e:
+                    log.error("Play callback failed: %s", e, exc_info=True)
+                    sg.popup_error(f"Failed to start playback: {e}", title="Error", keep_on_top=True)
 
-                # Call play callback
-                self.play_callback(channel)
+                # THEN close search window (allows event loop to process the task)
+                self.close()
             else:
                 log.warning("Invalid row index: %d", row_index)
 
@@ -191,26 +210,32 @@ class GlobalSearch:
             sg.popup_error(f"Failed to play channel: {e}", title="Error", keep_on_top=True)
 
     def _run_event_loop(self) -> None:
-        """Run the event loop for the search window."""
+        """Run the event loop for the search window with light debounce."""
+        last_query = ""
         while True:
-            event, values = self.window.read()
+            if self.window is None:
+                break
+            event, values = self.window.read(timeout=120)
 
             if event in (sg.WIN_CLOSED, "_close_"):
                 break
 
             elif event == "_global_search_input_":
-                # Filter as user types
-                search_text = values["_global_search_input_"]
-                self._filter_channels(search_text)
+                text = values.get("_global_search_input_", "")
+                if text != last_query:
+                    last_query = text
+                    self._filter_channels(text)
 
             elif event == "_clear_search_":
                 # Clear search and show all
                 self.window["_global_search_input_"].update("")
+                last_query = ""
                 self._filter_channels("")
 
-            elif event == "_search_results_":
-                # Double-click or Enter on table
+            elif event == "_PLAY_":
+                # Double-click or Enter: play selected channel and exit
                 self._play_selected_channel()
+                break
 
         self.close()
 
@@ -236,4 +261,3 @@ def show_global_search(all_channels: List[dict], play_callback: Callable) -> Non
     """
     search = GlobalSearch(all_channels, play_callback)
     search.show()
-
