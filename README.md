@@ -26,6 +26,23 @@ It relies on Windows-specific components such as `ctypes.windll.user32` and `lib
 Although many parts of the codebase (including the GUI) are technically portable, the media backend currently depends on Windows-only libraries, so macOS and Linux are **not supported** at this time.
 
 
+## What's New (v1.6)
+- **Fullscreen Overlay Controls**
+  - New keyboard-friendly control bar with icons in fullscreen
+  - ESC reliably exits fullscreen even when buttons have focus
+  - Added keyboard shortcuts for subtitles, audio, speed, seeking, pause/play
+  - Overlay toggles with `C` and fades out when not needed
+- **Improved Window Management**
+  - Fullscreen minimize/maximize flow fixed so the entire app minimizes together
+  - Control buttons stay disabled until playback actually starts, avoiding stuck states
+- **Playback Enhancements**
+  - Subtitles menu available directly in fullscreen overlay
+  - Video timers reset correctly when starting a new VOD and update live (with playback speed display)
+  - Settings persistence fixes (subtitle/audio/speed remembered when toggling fullscreen)
+- **Global Search Improvements**
+  - Ctrl+F window shows channel metadata and double-click to play
+  - Searches entire catalog regardless of selected category
+
 ## What's New (v1.5)
 - **Global Search (Ctrl+F)**
   - Search across ALL channels and videos instantly (not limited to categories)
