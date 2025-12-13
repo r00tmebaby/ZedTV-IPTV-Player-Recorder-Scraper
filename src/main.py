@@ -576,8 +576,7 @@ async def main() -> None:
             button_key, action = keyboard_shortcuts[ev]
 
             # Check if media is playing for playback controls
-            has_media = Player.players and (Player.players.is_playing() or
-                                            (Player.players.get_state() in [1, 2, 3, 4] if Player.players else False))
+            has_media = (Player.players and (Player.players.is_playing() or (Player.players.get_state() in [1, 2, 3, 4] if Player.players else False)))
 
             if button_key == "_pause_play_":
                 if has_media:

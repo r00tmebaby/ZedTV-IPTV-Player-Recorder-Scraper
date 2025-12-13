@@ -212,4 +212,4 @@ class UISettings:
             Key binding string (e.g., 'Escape', 'c')
         """
         key = f"key_{action}"
-        return self.settings.get(key, DEFAULT_UI_SETTINGS.get(key, "")) 
+        return self.settings.get(key, DEFAULT_UI_SETTINGS.get(key, ""))

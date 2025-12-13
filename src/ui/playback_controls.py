@@ -110,7 +110,7 @@ class PlaybackControls:
                 tracks = self.player_instance.players.video_get_spu_description()
                 if tracks:
                     result = [(t[0], t[1].decode('utf-8') if isinstance(t[1], bytes) else str(t[1]))
-                             for t in tracks]
+                              for t in tracks]
                     log.debug("Found %d subtitle tracks", len(result))
                     return result
         except Exception as e:
@@ -147,7 +147,7 @@ class PlaybackControls:
                 tracks = self.player_instance.players.audio_get_track_description()
                 if tracks:
                     result = [(t[0], t[1].decode('utf-8') if isinstance(t[1], bytes) else str(t[1]))
-                             for t in tracks]
+                              for t in tracks]
                     log.debug("Found %d audio tracks", len(result))
                     return result
         except Exception as e:
