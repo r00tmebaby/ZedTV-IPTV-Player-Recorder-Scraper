@@ -9,13 +9,13 @@ import logging
 import os
 from pathlib import Path
 
-from __version__ import APP_AUTHOR, APP_NAME, __version__
 from core.logger_setup import LOGS_DIR
 from core.models import Data
 from ui.help_window import show_help_window
 from ui.layout import sg
 from ui.logging_settings_window import _show_logging_settings_window
 from ui.settings_window import _show_vlc_settings_window
+from ui.star_prompt_window import show_about_window
 from ui.ui_settings_window import _show_ui_settings_window
 
 # Module logger
@@ -61,13 +61,7 @@ class EventHandler:
         """Display about dialog."""
         log.info("Showing About dialog")
         try:
-            sg.popup(
-                f"{APP_NAME} & {APP_AUTHOR}",
-                f"v{__version__} Released on 22.09.2025",
-                no_titlebar=True,
-                grab_anywhere=True,
-                keep_on_top=True,
-            )
+            show_about_window()
         except Exception as e:
             log.error("Failed to show About dialog: %s", e)
 

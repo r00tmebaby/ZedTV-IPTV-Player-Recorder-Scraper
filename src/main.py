@@ -141,6 +141,7 @@ from ui.global_search import show_global_search
 from ui.layout import build_layout, sg
 from ui.playback_controls import PlaybackControls
 from ui.splash_screen import SplashScreen
+from ui.star_prompt_window import maybe_show_star_prompt
 from ui.window_manager import WindowManager
 from utils.epg_loader import load_epg_async
 from utils.playback import play_media, stop_playback
@@ -286,6 +287,13 @@ async def main() -> None:
             )
         except Exception as e:
             log.error("Failed to show VLC error popup: %s", e)
+
+    # Ask for a GitHub star on the first start. It can be postponed or turned
+    # off, and a failure here must never stop the application from starting.
+    try:
+        maybe_show_star_prompt()
+    except Exception as e:
+        log.debug("Star prompt failed: %s", e)
 
     # Initialize background manager
     background_mgr = BackgroundManager(window["_canvas_video_"])
