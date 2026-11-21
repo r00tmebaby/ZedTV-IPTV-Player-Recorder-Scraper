@@ -6,9 +6,17 @@
 [![Version](https://img.shields.io/badge/version-1.6.1-blue)](https://github.com/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper/releases/latest)
 [![Changelog](https://img.shields.io/badge/changelog-view-blue)](CHANGELOG.md)
 
+**[Download the latest version for Windows](https://github.com/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper/releases/latest)**
+
+If ZedTV is useful to you, please [give it a star on GitHub](https://github.com/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper) so other people can find it.
+
 <img src="MEDIA/1.png" alt="ZeDTV screenshot">
-<img src="MEDIA/11.png" alt="ZeDTV screenshot">
 <img src="MEDIA/2.png" alt="ZeDTV screenshot">
+
+<details>
+<summary>More screenshots</summary>
+
+<img src="MEDIA/11.png" alt="ZeDTV screenshot">
 <img src="MEDIA/3.png" alt="ZeDTV screenshot">
 <img src="MEDIA/4.png" alt="ZeDTV screenshot">
 <img src="MEDIA/5.png" alt="ZeDTV screenshot">
@@ -17,6 +25,8 @@
 <img src="MEDIA/8.png" alt="ZeDTV screenshot">
 <img src="MEDIA/9.png" alt="ZeDTV screenshot">
 <img src="MEDIA/10.png" alt="ZeDTV screenshot">
+
+</details>
 
 
 ## Overview

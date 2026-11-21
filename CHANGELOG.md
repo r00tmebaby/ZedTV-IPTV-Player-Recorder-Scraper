@@ -5,6 +5,18 @@ All notable changes to ZedTV IPTV Player will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Star Request on First Start**
+  - A one-time dialog on the first start asks for a star on GitHub
+  - "Maybe later" asks again after five more starts; "Don't ask again" turns it off
+  - It never blocks the application, and the answer is kept in `data/star_prompt.json`
+
+### Changed
+- **About Dialog**
+  - Now has "Star on GitHub" and "Report a problem" buttons that open the project page
+
 ## [1.6.1] - 2025-12-13
 
 ### Added
