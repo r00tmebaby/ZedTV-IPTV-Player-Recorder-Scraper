@@ -5,9 +5,13 @@ All notable changes to ZedTV IPTV Player will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.1.0] - 2026-11-22
 
 ### Added
+- **Automated Release Builds**
+  - Every release is now built by GitHub Actions as a 64 bit Windows zip with VLC included
+  - Each release has a SHA-256 checksum for the zip
+
 - **Star Request on First Start**
   - A one-time dialog on the first start asks for a star on GitHub
   - "Maybe later" asks again after five more starts; "Don't ask again" turns it off
@@ -16,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **About Dialog**
   - Now has "Star on GitHub" and "Report a problem" buttons that open the project page
+
+### Fixed
+- **Built-in Playback in the Windows Package**
+  - The v2.0.0 zip paired a 32 bit exe with 64 bit VLC libraries, which it cannot load
+  - The exe is now 64 bit, matching the bundled VLC, and the build checks this every time
 
 ## [1.6.1] - 2025-12-13
 
@@ -184,6 +193,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version History
 
+- **[2.1.0]** - 2026-11-22: Star request, automated 64 bit release builds, playback fix
 - **[1.6.1]** - 2025-12-13: Fullscreen timer, ESC key fix, visual selection improvements
 - **[1.6.0]** - 2025-12-12: Fullscreen overlay controls, keyboard shortcuts
 - **[1.5.0]** - 2025-12-10: Global search, major UI overhaul, tabbed settings

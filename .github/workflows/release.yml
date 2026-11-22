@@ -1,0 +1,188 @@
+# Builds the Windows app with PyInstaller and packs it as a zip that runs without Python or VLC installed.
+#
+# Publishing a release, either way works:
+#   - push a tag v<version>, where <version> matches src/__version__.py, or
+#   - Actions > Release > Run workflow, with "publish" ticked. The tag is created from the version file.
+# Pull requests and runs without "publish" only build and test, and keep the zip as a workflow artifact.
+# The release notes are the CHANGELOG.md section for that version.
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish a release for the version in src/__version__.py
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build Windows package
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    env:
+      PUBLISH: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read the version
+        shell: pwsh
+        run: |
+          $match = Select-String -Path src/__version__.py -Pattern '^__version__\s*=\s*"([^"]+)"'
+          if (-not $match) { throw 'No __version__ found in src/__version__.py.' }
+          $version = $match.Matches[0].Groups[1].Value
+          if ($env:GITHUB_REF_TYPE -eq 'tag' -and $env:GITHUB_REF_NAME -ne "v$version") {
+            throw "Tag $env:GITHUB_REF_NAME does not match src/__version__.py ($version). Bump the version file or fix the tag."
+          }
+          "VERSION=$version" >> $env:GITHUB_ENV
+          "PACKAGE=ZedTV-IPTV-Player-v$version-win64" >> $env:GITHUB_ENV
+
+      - name: Stop if the release already exists
+        if: env.PUBLISH == 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "v$env:VERSION" *> $null
+          if ($LASTEXITCODE -eq 0) { throw "Release v$env:VERSION already exists. Bump src/__version__.py first." }
+          $global:LASTEXITCODE = 0
+
+      # 64 bit Python, because the VLC libraries in src/libs/win are 64 bit and a 32 bit exe cannot load them.
+      - name: Set up Python 3.13 (64 bit)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          architecture: x64
+
+      # Only what the app needs at runtime, so the package stays small. python-vlc is there for the spec's collect_all('vlc').
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests pydantic "httpx[http2]" "Pillow>=10.0.0" python-vlc pyinstaller pytest
+
+      - name: Run unit tests
+        run: python -m pytest tests/ -q --tb=short
+
+      - name: Build with PyInstaller
+        run: pyinstaller --noconfirm --clean ZedTV-IPTV-Player.spec
+
+      # Same layout as the hand made v2.0.0 zip: libvlc next to the exe, the plugins folder beside it.
+      - name: Assemble the package
+        shell: pwsh
+        run: |
+          $app = 'dist\ZedTV-IPTV-Player'
+          if (-not (Test-Path "$app\ZedTV-IPTV-Player.exe")) { throw 'PyInstaller did not produce ZedTV-IPTV-Player.exe.' }
+          Copy-Item src\libs\win\libvlc.dll, src\libs\win\libvlccore.dll $app
+          Copy-Item src\libs\win\plugins "$app\plugins" -Recurse
+          New-Item -ItemType Directory -Force "$app\data\thumbnails", "$app\data\epg", "$app\records" | Out-Null
+          Copy-Item src\data\thumbnails\background.jpg "$app\data\thumbnails\"
+          Copy-Item LICENSE "$app\LICENSE.txt"
+          $readme = @(
+            "ZedTV IPTV Player $env:VERSION",
+            '',
+            'Run ZedTV-IPTV-Player.exe. Keep every file in this folder together:',
+            'the app needs _internal, plugins and the VLC DLLs next to the exe.',
+            '',
+            'Project page, help and updates: https://github.com/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper',
+            'If ZedTV is useful to you, please give it a star there.'
+          ) -join "`r`n"
+          Set-Content -Path "$app\README.txt" -Value $readme -Encoding utf8
+          Rename-Item $app $env:PACKAGE
+
+      - name: Check the package
+        shell: pwsh
+        run: |
+          function Get-Machine([string]$path) {
+            $bytes = [System.IO.File]::ReadAllBytes($path)
+            $pe = [BitConverter]::ToInt32($bytes, 0x3c)
+            [BitConverter]::ToUInt16($bytes, $pe + 4)
+          }
+          $dir = "dist\$env:PACKAGE"
+          foreach ($file in 'ZedTV-IPTV-Player.exe', 'libvlc.dll', 'libvlccore.dll') {
+            $machine = Get-Machine "$dir\$file"
+            if ($machine -ne 0x8664) { throw ("{0} is not 64 bit (machine 0x{1:x})." -f $file, $machine) }
+          }
+          if (-not (Test-Path "$dir\plugins\codec")) { throw 'The VLC plugins are missing.' }
+
+          # Start a copy, so the settings and logs it writes never end up in the zip.
+          $smoke = Join-Path $env:RUNNER_TEMP 'smoke'
+          Copy-Item $dir $smoke -Recurse
+          $process = Start-Process "$smoke\ZedTV-IPTV-Player.exe" -WorkingDirectory $smoke -PassThru
+          Start-Sleep -Seconds 20
+          $crash = Test-Path "$smoke\startup_error.log"
+          if ($crash) { Get-Content "$smoke\startup_error.log" }
+          if ($process.HasExited) { throw "The app exited during start up with code $($process.ExitCode)." }
+          Stop-Process -Id $process.Id -Force
+          if ($crash) { throw 'The app wrote startup_error.log.' }
+          Get-ChildItem "$smoke\data\logs" -Filter *.log -ErrorAction SilentlyContinue |
+            Select-String -Pattern 'libvlc|VLC' | Select-Object -First 10 | ForEach-Object { $_.Line }
+
+      - name: Zip
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "dist\$env:PACKAGE" -DestinationPath "$env:PACKAGE.zip"
+          $hash = (Get-FileHash "$env:PACKAGE.zip" -Algorithm SHA256).Hash.ToLowerInvariant()
+          $utf8 = New-Object System.Text.UTF8Encoding $false
+          [System.IO.File]::WriteAllText((Join-Path $pwd "$env:PACKAGE.zip.sha256"), "$hash  $env:PACKAGE.zip`n", $utf8)
+          "HASH=$hash" >> $env:GITHUB_ENV
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PACKAGE }}
+          path: |
+            ${{ env.PACKAGE }}.zip
+            ${{ env.PACKAGE }}.zip.sha256
+
+      - name: Release
+        if: env.PUBLISH == 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $utf8 = New-Object System.Text.UTF8Encoding $false
+          $lines = [System.IO.File]::ReadAllLines((Join-Path $pwd 'CHANGELOG.md'), $utf8)
+          $section = @()
+          $inside = $false
+          foreach ($line in $lines) {
+            if ($line -match '^## \[') {
+              if ($inside) { break }
+              $inside = $line -match ('^## \[' + [regex]::Escape($env:VERSION) + '\]')
+              continue
+            }
+            if ($inside) { $section += $line }
+          }
+          $changes = ($section -join "`n").Trim()
+          if (-not $changes) { $changes = 'See CHANGELOG.md for the changes in this version.' }
+
+          $notes = @(
+            'If ZedTV is useful to you, please give it a star: https://github.com/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper',
+            '',
+            '## Download',
+            '',
+            "Download ``$env:PACKAGE.zip``, extract it and run ``ZedTV-IPTV-Player.exe``. It is a 64 bit Windows build with VLC included, so nothing else needs to be installed. Keep all the files together. The build is not code signed, so Windows SmartScreen may ask for confirmation the first time.",
+            '',
+            "## What's new",
+            '',
+            $changes,
+            '',
+            "SHA-256: ``$env:HASH``",
+            '',
+            "Built from $env:GITHUB_SHA."
+          ) -join "`n"
+          $notesFile = Join-Path $env:RUNNER_TEMP 'release-notes.md'
+          [System.IO.File]::WriteAllText($notesFile, $notes, $utf8)
+
+          gh release create "v$env:VERSION" "$env:PACKAGE.zip" "$env:PACKAGE.zip.sha256" --target $env:GITHUB_SHA --title "ZedTV IPTV Player $env:VERSION" --notes-file $notesFile --latest
+          if ($LASTEXITCODE -ne 0) { throw 'Creating the release failed.' }
