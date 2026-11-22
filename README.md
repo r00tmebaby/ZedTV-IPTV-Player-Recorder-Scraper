@@ -1,10 +1,11 @@
 # IPTV Player, Recorder and M3U List Creator
 [![CI](https://github.com/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper/actions/workflows/ci.yml/badge.svg)](https://github.com/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/tests-339%20passing-brightgreen)](https://github.com/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper/actions)
-[![Python](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/downloads/)
+[![Tests](https://img.shields.io/github/actions/workflow/status/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper/ci.yml?branch=master&label=tests)](https://github.com/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13-blue?logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/github/license/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.6.1-blue)](https://github.com/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper/releases/latest)
+[![Version](https://img.shields.io/github/v/release/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper?label=version)](https://github.com/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper/releases/latest)
 [![Changelog](https://img.shields.io/badge/changelog-view-blue)](CHANGELOG.md)
+[![Downloads](https://img.shields.io/github/downloads/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper/total?color=brightgreen)](https://github.com/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper/releases)
 
 **[Download the latest version for Windows](https://github.com/r00tmebaby/ZedTV-IPTV-Player-Recorder-Scraper/releases/latest)**
 
